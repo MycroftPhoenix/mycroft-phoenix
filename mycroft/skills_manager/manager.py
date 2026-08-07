@@ -123,10 +123,13 @@ class SkillsManager:
                f"/git/trees/{self.catalog_branch}?recursive=1")
         tree = self._get(url)
         prefix = folder + "/"
+        skip = {"__pycache__"}
         return [
             entry["path"][len(prefix):]
             for entry in tree.get("tree", [])
             if entry.get("type") == "blob" and entry["path"].startswith(prefix)
+            and not any(p in skip for p in entry["path"].split("/"))
+            and not entry["path"].endswith(".pyc")
         ]
 
     def remove(self, skill_name):
