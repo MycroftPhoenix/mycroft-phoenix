@@ -373,10 +373,10 @@ class KuzuManager:
 
         rid = str(uuid.uuid4())[:8]
         timestamp = datetime.now().isoformat()
-        safe_content = content.replace("'", "\\'")[:5000]
-        safe_url = source_url.replace("'", "\\'")
-        safe_title = source_title.replace("'", "\\'")
-        safe_query = query.replace("'", "\\'")
+        safe_content = content.replace("\\", "\\\\").replace("'", "\\'")[:5000]
+        safe_url = source_url.replace("\\", "\\\\").replace("'", "\\'")
+        safe_title = source_title.replace("\\", "\\\\").replace("'", "\\'")
+        safe_query = query.replace("\\", "\\\\").replace("'", "\\'")
 
         cypher = f"""
             CREATE (r:Research {{
@@ -484,8 +484,8 @@ class KuzuManager:
 
         conv_id = str(uuid.uuid4())[:8]
         timestamp = datetime.now().isoformat()
-        safe_input = user_input.replace("'", "\\'")
-        safe_response = response.replace("'", "\\'")
+        safe_input = user_input.replace("\\", "\\\\").replace("'", "\\'")
+        safe_response = response.replace("\\", "\\\\").replace("'", "\\'")
 
         cypher = f"""
             CREATE (c:Conversation {{
@@ -557,7 +557,7 @@ class KuzuManager:
 
         lid = str(uuid.uuid4())[:8]
         timestamp = datetime.now().isoformat()
-        safe_content = content.replace("'", "\\'")
+        safe_content = content.replace("\\", "\\\\").replace("'", "\\'")
 
         cypher = f"""
             CREATE (l:Learning {{
@@ -583,8 +583,8 @@ class KuzuManager:
     def add_skill(self, name: str, description: str, category: str = "custom",
                   utterances: str = ""):
         """Ajoute un skill personnalisé."""
-        safe_desc = description.replace("'", "\\'")
-        safe_utts = utterances.replace("'", "\\'")
+        safe_desc = description.replace("\\", "\\\\").replace("'", "\\'")
+        safe_utts = utterances.replace("\\", "\\\\").replace("'", "\\'")
 
         cypher = f"""
             MERGE (s:Skill {{

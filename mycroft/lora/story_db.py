@@ -80,7 +80,7 @@ class StoryDatabase:
             language: str = "fr", source: str = "generated") -> Optional[str]:
         sid = str(uuid.uuid4())[:12]
         ts = datetime.now().isoformat()
-        safe = lambda s: s.replace("'", "\\'") if s else ""
+        safe = lambda s: s.replace("\\", "\\\\").replace("'", "\\'") if s else ""
         try:
             self._conn.execute(f"""
                 CREATE (s:Story {{
@@ -118,7 +118,7 @@ class StoryDatabase:
         return None
 
     def search(self, query: str, top_k: int = 5) -> List[Dict]:
-        q = query.replace("'", "\\'")
+        q = query.replace("\\", "\\\\").replace("'", "\\'")
         try:
             r = self._conn.execute(f"""
                 MATCH (s:Story)
@@ -155,7 +155,7 @@ class StoryDatabase:
 
     def add_character(self, story_id: str, char_name: str,
                       voice: str = "", description: str = ""):
-        safe = lambda s: s.replace("'", "\\'") if s else ""
+        safe = lambda s: s.replace("\\", "\\\\").replace("'", "\\'") if s else ""
         ts = datetime.now().isoformat()
         try:
             self._conn.execute(f"""

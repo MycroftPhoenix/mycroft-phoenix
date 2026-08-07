@@ -397,8 +397,8 @@ class IntentMatcher:
                 
                 # Ajouter les utterances
                 for utterance in utterances:
-                    # Échapper les guillemets
-                    safe_utterance = utterance.replace("'", "\\'")
+                    # Échapper les guillemets et backslashes
+                    safe_utterance = utterance.replace("\\", "\\\\").replace("'", "\\'")
                     self.kuzu_graph.query(f"""
                         MATCH (i:Intent {{name: '{intent_name}'}})
                         CREATE (u:Utterance {{text: '{safe_utterance}'}})
