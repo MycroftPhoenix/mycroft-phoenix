@@ -71,6 +71,14 @@ class DateTimeSkill:
         if response:
             self.speak(response)
 
+    def _detect_date_time_intent(self, text):
+        """Contrat Phoenix : retourne le nom d'intent ou None."""
+        for intent_name, patterns in self._intents.items():
+            for pattern in patterns:
+                if re.search(pattern, text, re.IGNORECASE):
+                    return intent_name
+        return None
+
     def _match_intent(self, utterance):
         """Vérifie si l'utterance correspond à un intent date/heure."""
         for intent_name, patterns in self._intents.items():

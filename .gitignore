@@ -62,7 +62,6 @@ test_conf.json
 
 # ─── Mycroft legacy ────────────────────────────────────────
 mimic
-/skills
 pocketsphinx-python
 tornado.web
 tornado.ioloop

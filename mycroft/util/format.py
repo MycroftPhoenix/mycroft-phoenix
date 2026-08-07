@@ -47,7 +47,6 @@ from lingua_franca.format import (
 from lingua_franca.format import (NUMBER_TUPLE, DateTimeFormat,
                                   date_time_format, expand_options,
                                   _translate_word)
-from padatious.util import expand_parentheses
 
 
 class TimeResolution(Enum):

@@ -20,10 +20,10 @@ from typing import Dict, List, Optional
 
 LOG = logging.getLogger("mycroft.skill.storyteller")
 
-from mycroft.skills.storyteller.examples_fr import FEW_SHOT_STORIES
-from mycroft.skills.storyteller.generation import StoryGenerator, create_generator
-from mycroft.skills.storyteller.parser import StoryParser
-from mycroft.skills.storyteller.storage import StoryStorage
+from .examples_fr import FEW_SHOT_STORIES
+from .generation import StoryGenerator, create_generator
+from .parser import StoryParser
+from .storage import StoryStorage
 from mycroft.tts.base import TTSFactory
 
 

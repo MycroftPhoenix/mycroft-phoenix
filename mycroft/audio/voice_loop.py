@@ -30,7 +30,7 @@ import numpy as np
 from mycroft.pipeline import PhoenixPipeline
 from mycroft.messagebus import get_hub, InternalMessage
 from mycroft.audio.wakeword_fr import VoskGrammarWakeWord
-from mycroft.skills.storyteller import create_skill
+from mycroft.skills_manager.loader import scan_skills, first_match
 
 CONFIG_FILE = PROJECT_ROOT / "audio_config.json"
 TEMP_DIR = Path(tempfile.gettempdir())
@@ -427,15 +427,24 @@ class VoiceLoop:
         self.hub = get_hub()
         self.hub.on("phoenix.speak", self._on_speak)
 
-        # Skill storyteller (histoires pour enfants). subscribe=False :
-        # le routing se fait dans _handle_utterance_locked (priorite skill).
+        # Skills installes (catalogue skills/ -> data_dir/skills).
+        # Scan auto : chaque skill suit le contrat Phoenix
+        # (create_skill + init + _detect_*_intent + _handle_utterance).
+        # En mode source, charge aussi le dossier skills/ du projet.
+        self.skills = []
         try:
-            self.storyteller = create_skill()
-            self.storyteller.init(self.hub, subscribe=False, tts=self.tts)
-            print("[Storyteller] Skill histoire initialisée")
+            from mycroft.data_manager import DataManager
+            dm = DataManager()
+            skills_dirs = [PROJECT_ROOT / "skills",
+                           dm.get_data_dir() / "skills"]
+            for skills_dir in skills_dirs:
+                if skills_dir.is_dir():
+                    self.skills += scan_skills(skills_dir, self.hub,
+                                               tts=self.tts)
+            print(f"[Skills] {len(self.skills)} skill(s) charge(s)")
         except Exception as e:
-            print(f"[Storyteller] Désactivée: {e}")
-            self.storyteller = None
+            print(f"[Skills] Désactivés: {e}")
+            self.skills = []
 
         # Interface web (serveur Flask en thread daemon)
         self.web = None
@@ -620,13 +629,13 @@ class VoiceLoop:
         de traitement deja acquis (une seule instance a la fois)."""
         print(f"[Pipeline] Traitement: {text}")
 
-        # Priorite skill storyteller : si l'utilisateur demande une
-        # histoire, on ne passe pas par le pipeline (sinon double reponse).
-        if self.storyteller is not None:
-            intent = self.storyteller._detect_story_intent(text.lower())
-            if intent:
-                print(f"[Storyteller] Intent: {intent}")
-                self.storyteller._handle_utterance(
+        # Priorite aux skills installes : si un skill reconnait l'utterance,
+        # on ne passe pas par le pipeline (sinon double reponse).
+        if self.skills:
+            skill, intent = first_match(self.skills, text.lower())
+            if skill is not None:
+                print(f"[Skill:{skill.name}] Intent: {intent}")
+                skill.handle(
                     InternalMessage("recognizer_loop:utterance",
                                     {"utterances": [text]})
                 )
