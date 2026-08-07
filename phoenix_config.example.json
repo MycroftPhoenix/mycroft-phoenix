@@ -1,0 +1,80 @@
+{
+  "phoenix": {
+    "version": "1.0.0",
+    "name": "Phoenix",
+    "description": "Assistant vocal de sante mentale"
+  },
+  "llm": {
+    "provider": "ollama",
+    "default_model": "qwen2.5:0.5b",
+    "available_models": [
+      {"id": "qwen2.5:0.5b", "name": "Qwen 2.5 0.5B", "default": true},
+      {"id": "qwen2.5:1.5b", "name": "Qwen 2.5 1.5B"},
+      {"id": "smollm2:360m", "name": "SmolLM2 360M", "use_case": "fallback_only"},
+      {"id": "smollm2:1.7b", "name": "SmolLM 1.7B"}
+    ],
+    "lora": {"enabled": true, "adapter_path": null},
+    "architecture": {
+      "mode": "collaborative",
+      "description": "ChatterBot+Kuzu gere les intents connus, LLM gere le fallback",
+      "intent_coverage_target": 0.9,
+      "llm_usage": "fallback_only"
+    },
+    "ollama_url": "http://localhost:11434",
+    "temperature": 0.5,
+    "max_tokens": 200
+  },
+  "stt": {
+    "provider": "vosk",
+    "model": "vosk-model-small-fr-0.22",
+    "model_path": "VOSK_MODEL_PATH",
+    "sample_rate": 16000,
+    "language": "fr"
+  },
+  "tts": {
+    "provider": "piper",
+    "voice": "fr_FR-siwis-medium",
+    "voice_path": "PIPER_VOICE_PATH",
+    "piper_path": "PIPER_BIN_PATH",
+    "sample_rate": 22050
+  },
+  "memory": {
+    "kuzu_graph": "phoenix",
+    "kuzu_path": "./phoenix.kuzu",
+    "save_conversations": true,
+    "max_history": 50
+  },
+  "safety": {
+    "crisis_detection": true,
+    "emergency_numbers": {
+      "FR": "3114",
+      "CA": "1-866-APPELLE",
+      "US": "988",
+      "BE": "1813",
+      "CH": "143",
+      "QC": "1-866-APPELLE"
+    },
+    "auto_escalate": true
+  },
+  "languages": ["fr", "en", "es", "de", "it", "pt"],
+  "wake_word": {
+    "enabled": true,
+    "word": "hey phoenix",
+    "presets": ["hey phoenix", "hey mycroft", "phoenix", "mycroft", "custom", "none"]
+  },
+  "chatterbot": {
+    "enabled": false,
+    "installed": false,
+    "description": "ML conversationnel - ameliore le matching sur variations imprevues",
+    "install_command": "pip install chatterbot==1.2.8 chatterbot-corpus-py"
+  },
+  "setup": {"completed": false, "first_run": true},
+  "web": {
+    "enabled": true,
+    "host": "0.0.0.0",
+    "port": 8181,
+    "username": "mycroft",
+    "password": "CHANGE_ME",
+    "description": "Interface web legere (chat + status). Auth par defaut mycroft/CHANGE_ME."
+  }
+}

@@ -1,0 +1,4 @@
+# ── DEPRECATED ──
+# VLC est maintenant dans requirementslinux.txt / requirementswindows.txt / requirementsmac.txt
+# Ce fichier est garde pour compatibilite avec setup.py extras_require
+python-vlc==1.1.2

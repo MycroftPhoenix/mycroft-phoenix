@@ -1,0 +1,4 @@
+# ── DEPRECATED ──
+# Google STT est dans requirements via SpeechRecognition
+# Ce fichier est garde pour compatibilite avec setup.py extras_require
+google-api-python-client==1.6.4

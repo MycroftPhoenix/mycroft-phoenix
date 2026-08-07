@@ -1,0 +1,4 @@
+# ── DEPRECATED ──
+# pyalsaaudio est dans requirementslinux.txt uniquement
+# Ce fichier est garde pour compatibilite avec setup.py extras_require
+pyalsaaudio==0.8.2

@@ -1,0 +1,69 @@
+{
+  "intents": [
+    {
+      "name": "mental_health_despair",
+      "utterances": [
+        "je veux que tout s'arrete",
+        "je n'en peux plus",
+        "a quoi bon continuer",
+        "il n'y a plus d'espoir pour moi",
+        "je ne vois pas d'issue",
+        "c'est trop lourd a porter",
+        "j'arrive au bout",
+        "je suis au bout",
+        "le poids est trop grand",
+        "j'ai envie de tout arreter",
+        "il faut que ca s'arrete"
+      ]
+    },
+    {
+      "name": "mental_health_fardeau",
+      "utterances": [
+        "vous seriez plus heureux sans moi",
+        "je gache la vie de tout le monde",
+        "je suis un poids pour mes proches",
+        "tout le monde se porterait mieux si je n'etais pas la",
+        "je ne sers a rien",
+        "je vaux rien",
+        "je suis un boulet pour",
+        "je suis une charge",
+        "mieux sans moi",
+        "plus tranquille sans moi"
+      ]
+    },
+    {
+      "name": "mental_health_isolation",
+      "utterances": [
+        "je me sens tellement seul",
+        "personne ne peut me comprendre",
+        "je n'ai plus la force de faire semblant",
+        "je disparais petit a petit",
+        "je me sens vide",
+        "personne ne me comprend",
+        "je suis invisible",
+        "personne ne me remarque"
+      ]
+    },
+    {
+      "name": "mental_health_sleep",
+      "utterances": [
+        "ne plus jamais me reveiller",
+        "m'endormir pour de bon",
+        "si je ne me reveille pas",
+        "je veux disparaitre",
+        "je veux m'effacer",
+        "je veux juste dormir et ne plus jamais me reveiller"
+      ]
+    },
+    {
+      "name": "mental_health_farewell",
+      "utterances": [
+        "bientot vous n'aurez plus a vous soucier de moi",
+        "je veux juste dormir et ne plus jamais me reveiller",
+        "j'ai regle toutes mes affaires",
+        "merci pour tout, au revoir",
+        "je veux que ca s'arrete"
+      ]
+    }
+  ]
+}

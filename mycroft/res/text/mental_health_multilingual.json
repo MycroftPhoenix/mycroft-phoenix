@@ -1,0 +1,237 @@
+{
+  "intents": [
+    {
+      "name": "mental_health_distress",
+      "utterances": {
+        "fr": [
+          "je veux que tout s'arrete",
+          "je n'en peux plus",
+          "a quoi bon continuer",
+          "il n'y a plus d'espoir pour moi",
+          "je ne vois pas d'issue",
+          "c'est trop lourd a porter",
+          "vous seriez plus heureux sans moi",
+          "je suis un poids pour mes proches",
+          "je veux juste dormir et ne plus jamais me reveiller",
+          "je veux disparaitre",
+          "je ne sers a rien",
+          "je veux mourir",
+          "je veux me tuer",
+          "je suis au bout",
+          "je suis un boulet",
+          "je suis vide",
+          "je suis une charge",
+          "je coule",
+          "je m'efface",
+          "je suis tanné de me battre",
+          "j'en ai marre de survivre",
+          "prends soin de mes proches pour moi",
+          "dites a ma mere que je l'aime"
+        ],
+        "en": [
+          "i want it all to stop",
+          "i can't take this anymore",
+          "what is the point of going on",
+          "there is no hope for me",
+          "i don't see any way out",
+          "it is too heavy to carry",
+          "you would be happier without me",
+          "i am a burden to my family",
+          "i just want to sleep and never wake up",
+          "i want to disappear",
+          "i am completely useless",
+          "i want to die",
+          "kill myself",
+          "i want to kill myself",
+          "i feel empty inside",
+          "i am a burden to everyone",
+          "take care of my loved ones for me",
+          "i am drowning",
+          "i am fading away"
+        ],
+        "es": [
+          "quiero que todo termine",
+          "ya no puedo mas",
+          "de que sirve seguir adelante",
+          "ya no hay esperanza para mi",
+          "no veo ninguna salida",
+          "esto es demasiado pesado para mi",
+          "serian mas felices sin mi",
+          "soy una carga para mis seres queridos",
+          "solo quiero dormir y no despertar jamas",
+          "quiero desaparecer",
+          "no sirvo para nada",
+          "me siento vacio",
+          "soy una carga para todos"
+        ],
+        "de": [
+          "ich will dass alles aufhoert",
+          "ich kann nicht mehr",
+          "was hat das alles noch fuer einen sinn",
+          "es gibt keine hoffnung mehr fuer mich",
+          "ich sehe keinen ausweg mehr",
+          "es ist einfach zu schwer zu ertragen",
+          "ihr waeret ohne mich gluecklicher",
+          "ich bin eine last fuer meine familie",
+          "ich will einfach nur schlafen und nie wieder aufwachen",
+          "ich will einfach verschwinden",
+          "ich bin zu nichts nutze",
+          "ich fuehle mich leer"
+        ],
+        "it": [
+          "voglio che tutto finisca",
+          "non ce la faccio piu",
+          "a cosa serve continuare",
+          "non c'e piu speranza per me",
+          "non vedo alcuna via d'uscita",
+          "e un peso troppo grande da portare",
+          "sareste piu felici senza di me",
+          "sono un peso per i miei cari",
+          "voglio solo dormire e non svegliarmi mai piu",
+          "voglio sparire",
+          "non servo a nulla",
+          "mi sento vuoto"
+        ],
+        "pt": [
+          "preciso de ajuda agora",
+          "onde posso encontrar apoio emocional",
+          "alguem pode me ouvir",
+          "estou a passar por um momento dificil",
+          "preciso de falar com um profissional",
+          "existem recursos de prevencao",
+          "como obter ajuda psicologica",
+          "quero falar sobre a minha saude mental",
+          "procurar apoio em crise"
+        ],
+        "nl": [
+          "ik heb nu hulp nodig",
+          "waar kan ik emotionele steun vinden",
+          "kan iemand naar mij luisteren",
+          "ik ga door een moeilijke tijd",
+          "ik moet met een professional praten",
+          "zijn er hulpmiddelen voor preventie",
+          "hoe krijg ik psychologische hulp",
+          "ik wil praten over mijn mentale gezondheid",
+          "steun zoeken bij een crisis"
+        ],
+        "ru": [
+          "мне нужна помощь сейчас",
+          "где я могу найти эмоциональную поддержку",
+          "может ли кто-нибудь меня выслушать",
+          "я переживаю трудные времена",
+          "мне нужно поговорить со специалистом",
+          "есть ли ресурсы для профилактики",
+          "как получить психологическую помощь",
+          "я хочу поговорить о своем ментальном здоровье",
+          "поиск поддержки в кризисной ситуации"
+        ],
+        "zh": [
+          "我现在需要帮助",
+          "我可以在哪里找到情感支持",
+          "有人可以听我倾诉吗",
+          "我正经历一段艰难的时期",
+          "我需要咨询专业人士",
+          "是否有预防相关的资源",
+          "如何获得心理援助",
+          "我想聊聊我的心理健康",
+          "在危机时刻寻求支持"
+        ],
+        "ja": [
+          "今すぐ助けが必要です",
+          "心の支えはどこで見つかりますか",
+          "誰か話を聞いてくれませんか",
+          "苦しい時期を過ごしています",
+          "専門家に相談したいです",
+          "予防のためのリソースはありますか",
+          "心理的援助を受ける方法は",
+          "メンタルヘルスについて話したいです",
+          "危機的な状況でサポートを求める"
+        ],
+        "ar": [
+          "أحتاج إلى المساعدة الآن",
+          "أين يمكنني العثور على دعم عاطفي",
+          "هل يمكن لأحد أن يستمع إلي",
+          "أمر بوقت عصيب",
+          "أحتاج للتحدث مع متخصص",
+          "هل هناك موارد للوقاية",
+          "كيف أحصل على مساعدة نفسية",
+          "أريد التحدث عن صحتي النفسية",
+          "البحث عن دعم في وقت الأزمات"
+        ]
+      }
+    },
+    {
+      "name": "mental_health_subtle_signals",
+      "utterances": {
+        "fr": [
+          "je suis vide",
+          "je suis une charge",
+          "je coule",
+          "je m'efface",
+          "je suis tanné de me battre",
+          "j'en ai marre de survivre",
+          "prends soin de mes proches pour moi",
+          "dites a ma mere que je l'aime",
+          "je n'ai plus de sens",
+          "la vie n'a plus de saveur",
+          "je suis en pilote automatique",
+          "je ne reconnais plus moi-meme",
+          "je suis fatigué d'exister"
+        ],
+        "en": [
+          "i feel empty inside",
+          "i am a burden to everyone",
+          "i am drowning",
+          "i am fading away",
+          "take care of my loved ones for me",
+          "tell my family i love them",
+          "life has no meaning anymore",
+          "i am on autopilot",
+          "i don't recognize myself anymore",
+          "i am tired of existing"
+        ],
+        "es": [
+          "me siento vacio",
+          "soy una carga para todos",
+          "cuídalos por mí",
+          "dile a mi mamá que la quiero"
+        ],
+        "de": [
+          "ich fuehle mich leer",
+          "ich bin eine last fuer alle",
+          "pass auf meine liebsten auf fuer mich"
+        ],
+        "it": [
+          "mi sento vuoto",
+          "sono un peso per tutti",
+          "prenditi cura dei miei cari per me"
+        ]
+      }
+    },
+    {
+      "name": "mental_health_preparatory",
+      "utterances": {
+        "fr": [
+          "je veux juste que la douleur s'arrete",
+          "plus rien n'a d'importance",
+          "je suis pret a tout",
+          "c'est ma derniere semaine",
+          "je fais mes adieux",
+          "merci pour tout ce que vous avez fait",
+          "je veux que vous sachiez",
+          "je n'aurai plus jamais peur"
+        ],
+        "en": [
+          "i just want the pain to stop",
+          "nothing matters anymore",
+          "i am ready for anything",
+          "this is my last week",
+          "i am saying my goodbyes",
+          "thank you for everything you did",
+          "i want you to know",
+          "i will never be afraid again"
+        ]
+      }
+    }
+  ]
+}

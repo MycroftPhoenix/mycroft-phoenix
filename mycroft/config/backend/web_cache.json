@@ -1,0 +1,30 @@
+
+{
+    "user_info": {
+        "name": "Votre nom",
+        "email": "votre@email.com"
+    },
+    "device_info": {
+        "device_name": "Nom de votre appareil",
+        "device_type": "type_de_votre_appareil"
+    },
+    "preferences": {
+        "language": "fr-fr",
+        "timezone": "Europe/Paris"
+    },
+    "skills": [
+        {
+            "name": "skill_1",
+            "settings": {
+                "setting_1": "valeur_1",
+                "setting_2": "valeur_2"
+            }
+        },
+        {
+            "name": "skill_2",
+            "settings": {
+                "setting_3": "valeur_3"
+            }
+        }
+    ]
+}

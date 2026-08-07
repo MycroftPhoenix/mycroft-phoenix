@@ -1,0 +1,83 @@
+# ─── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.installed
+venv/
+.venv/
+
+# ─── Bases de données (PRIVÉES - ne jamais pousser) ────────
+*.kuzu
+*.kuzu.wal
+*.db
+*.sqlite
+*.sqlite3
+data/
+mycroft-kuzu/
+snapshots/
+backups/
+
+# ─── Modèles et données téléchargées ───────────────────────
+models/
+*.onnx
+*.tflite
+vosk-model-*/
+
+# ─── Logs ──────────────────────────────────────────────────
+log/
+logs/
+*.log
+scripts/logs/*
+scripts/*.screen
+
+# ─── Données personnelles / sessions ───────────────────────
+last_session.md
+speaker_profiles.json
+*.lock
+mycroft_messagebus_service.lock
+
+# ─── Ancien historique fork (backup local) ─────────────────
+.git_fork_backup_20260807/
+
+# ─── Configs locales (contenir chemins machine) ────────────
+phoenix_config.json
+audio_config.json
+dev.env
+.dev_opts.json
+test_conf.json
+
+# ─── IDEs / OS ─────────────────────────────────────────────
+.idea/
+.vscode/
+.theia/
+*.code-workspace
+*.swp
+*~
+
+# ─── Mycroft legacy ────────────────────────────────────────
+mimic
+/skills
+pocketsphinx-python
+tornado.web
+tornado.ioloop
+mycroft/__version__.py
+.coverage
+/htmlcov
+test/audio_accuracy/data
+doc/_build/
+
+# Created by unit tests
+test/unittests/skills/test_skill/settings.json
+
+# Residus de developpement
+*.bak*
+**/configbackup
+**/backupmain
+**/skillloaderrbackup
+mycroft/tts/narrator py

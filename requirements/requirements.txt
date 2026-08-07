@@ -1,0 +1,7 @@
+# ── DEPRECATED ──
+# Ce fichier est remplace par :
+#   requirementslinux.txt   (Linux)
+#   requirementswindows.txt (Windows)
+#   requirementsmac.txt     (macOS)
+#
+# Utilisez install.py pour l'installation automatique.

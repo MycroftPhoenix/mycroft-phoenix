@@ -1,0 +1,161 @@
+{
+  "intents": [
+    {
+      "name": "greeting",
+      "utterances": [
+        "Bonjour",
+        "Salut",
+        "Hello",
+        "Coucou",
+        "Bonsoir",
+        "Hey",
+        "Salutations",
+        "Bien le bonjour",
+        "What's up",
+        "Howdy"
+      ]
+    },
+    {
+      "name": "farewell",
+      "utterances": [
+        "Au revoir",
+        "Bye",
+        "À bientôt",
+        "Adieu",
+        "Salut",
+        "See you",
+        "Ciao",
+        "Take care"
+      ]
+    },
+    {
+      "name": "time",
+      "utterances": [
+        "Quelle heure est-il",
+        "Donne-moi l'heure",
+        "Il est quelle heure",
+        "Tu peux me dire l'heure",
+        "Time",
+        "What time is it",
+        "Tell me the time"
+      ]
+    },
+    {
+      "name": "weather",
+      "utterances": [
+        "Quel temps fait-il",
+        "Quel temps fait-il aujourd'hui",
+        "Quel temps fait-il demain",
+        "Quelle est la température",
+        "Quelle est la température aujourd'hui",
+        "Quelle est la température à Matane",
+        "Donne-moi la météo",
+        "Donne moi la meteo de demain",
+        "Combien de degrés fait-il",
+        "Il fait froid",
+        "Il fait chaud",
+        "Météo",
+        "Weather",
+        "What's the weather",
+        "What's the temperature",
+        "How cold is it",
+        "Tell me the weather"
+      ]
+    },
+    {
+      "name": "date",
+      "utterances": [
+        "Quelle date on est",
+        "On est quel jour",
+        "Quel jour on est",
+        "What date is it",
+        "Today's date",
+        "Quelle est la date du jour"
+      ]
+    },
+    {
+      "name": "thanks",
+      "utterances": [
+        "Merci",
+        "Thanks",
+        "Thank you",
+        "Je te remercie",
+        "Merci beaucoup",
+        "Thanks a lot"
+      ]
+    },
+    {
+      "name": "yes",
+      "utterances": [
+        "Oui",
+        "Yes",
+        "Ok",
+        "D'accord",
+        "Yep",
+        "Yeah",
+        "Sure",
+        "Yep"
+      ]
+    },
+    {
+      "name": "no",
+      "utterances": [
+        "Non",
+        "No",
+        "Nope",
+        "Nop",
+        "Not at all",
+        "Pas du tout"
+      ]
+    },
+    {
+      "name": "help",
+      "utterances": [
+        "Aide",
+        "Help",
+        "Aide-moi",
+        "J'ai besoin d'aide",
+        "Assistance",
+        "Support"
+      ]
+    },
+    {
+      "name": "how_are_you",
+      "utterances": [
+        "Comment ça va",
+        "Comment vas-tu",
+        "How are you",
+        "Ça va bien",
+        "Quoi de neuf",
+        "What's up"
+      ]
+    },
+    {
+      "name": "name",
+      "utterances": [
+        "Comment tu t'appelles",
+        "Tu es qui",
+        "Quel est ton nom",
+        "What's your name",
+        "Who are you",
+        "Tu t'appelles comment"
+      ]
+    },
+    {
+      "name": "storytelling",
+      "utterances": [
+        "Raconte moi une histoire",
+        "Tu peux me raconter une histoire",
+        "Raconte",
+        "Histoire",
+        "Je veux une histoire",
+        "Une histoire pour enfant",
+        "Raconte moi un conte",
+        "Tell me a story",
+        "Story",
+        "I want a story",
+        "Raconte moi l'histoire du dragon"
+      ]
+    }
+  ]
+}

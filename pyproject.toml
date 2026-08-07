@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "phoenix-assistant"
+version = "1.0.0"
+description = "Assistant vocal Phoenix — santé mentale, storytelling, domotique"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Steve", email = "steve@phoenix-assistant.org"},
+]
+keywords = ["voice-assistant", "mental-health", "storyteller", "mycroft", "phoenix"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "kuzu>=0.7",
+    "sounddevice>=0.4",
+    "vosk>=0.3",
+    "numpy>=1.24",
+    "scikit-learn>=1.2",
+    "requests>=2.28",
+    "beautifulsoup4>=4.12",
+    "duckduckgo_search>=7.0",
+    "pyaudio>=0.2",
+]
+
+[project.optional-dependencies]
+storyteller = [
+    "ollama>=0.4",
+]
+dev = [
+    "pytest>=7",
+    "ruff>=0.1",
+]
+hub = [
+    "mycroft-hub",
+]
+lora = [
+    "mycroft-lora",
+]
+
+[project.urls]
+Homepage = "https://github.com/steve/phoenix-assistant"
+Source = "https://github.com/steve/phoenix-assistant"
+Documentation = "https://phoenix-assistant.readthedocs.io"
+
+[project.scripts]
+phoenix = "mycroft.audio.voice_loop:main"
+phoenix-chat = "mycroft.client.text.chat:main"
+phoenix-diag = "mycroft.setup_audio:main"
+phoenix-skill-intent = "mycroft.skills.intents.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mycroft*"]
+exclude = ["tests*", "backups*", "venv*", "mycroft-kuzu*", "mycroft-skills-manager*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.json", "*.onnx", "*.kuzu"]

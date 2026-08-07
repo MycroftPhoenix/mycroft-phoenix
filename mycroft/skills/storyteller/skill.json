@@ -1,0 +1,20 @@
+﻿{
+    "name": "storyteller",
+    "version": "1.0.0",
+    "description": "Génère, mémorise et raconte des histoires aux enfants avec voix multiples",
+    "author": "Mycroft Phoenix",
+    "license": "Apache-2.0",
+    "category": "entertainment",
+    "intents": [
+        {
+            "name": "storytelling",
+            "examples": [
+                "Raconte moi une histoire",
+                "Raconte moi un conte",
+                "Je veux une histoire de dragon",
+                "Continue l'histoire",
+                "Raconte moi l'histoire du chevalier"
+            ]
+        }
+    ]
+}

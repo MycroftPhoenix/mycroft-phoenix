@@ -1,0 +1,23 @@
+# Phoenix Assistant - Dependencies minimales multi-plateforme
+# pip install -r requirements/phoenix.txt
+
+# Audio I/O (remplace PyAudio, multi-plateforme)
+sounddevice>=0.4.6
+
+# STT local
+vosk>=0.3.45
+
+# Audio processing
+numpy>=1.24.0
+
+# Mémoire persistante
+kuzu>=0.7.0
+
+# Intent matching (TF-IDF)
+scikit-learn>=1.2.0
+
+# HTTP requests (téléchargement modèles)
+requests>=2.28.0
+
+# TTS (binaire externe, pas de binding Python)
+# Installer Piper séparément: https://github.com/rhasspy/piper

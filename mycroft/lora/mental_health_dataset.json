@@ -1,0 +1,203 @@
+[
+  {
+    "intent": "mental_health_distress",
+    "utterances": [
+      "Je veux mourir",
+      "Je ne veux plus vivre",
+      "Je veux me tuer",
+      "Je suis au bout du rouleau",
+      "Je n'en peux plus",
+      "Tout est meaningless",
+      "Je suis déprimé",
+      "Je me sens vide",
+      "Je veux que ça s'arrête",
+      "Personne ne me comprend",
+      "Je suis seul",
+      "Je ne vois pas l'intérêt de vivre",
+      "J'en ai assez",
+      "Je suis fatigué de tout",
+      "Je veux disparaître"
+    ],
+    "responses": [
+      "Je t'entends, et je prends ça très au sérieux. Tu n'es pas seul. En France: 3114 (suicide) ou 15 (urgence). Parle à quelqu'un maintenant.",
+      "Ta vie a de la valeur. Appelle le 3114 maintenant, c'est gratuit et anonyme.",
+      "Je suis là pour t'écouter. Le 3114 est disponible 24h/24. Tu n'es pas seul(e)."
+    ]
+  },
+  {
+    "intent": "mental_health_anxiety",
+    "utterances": [
+      "J'ai peur de tout",
+      "J'ai une crise d'angoisse",
+      "Je ne peux pas respirer",
+      "Mon cœur bat trop vite",
+      "Je suis très anxieux",
+      "Je stresse tout le temps",
+      "J'ai peur de mourir",
+      "Je me sens en danger",
+      "Je n'arrive pas à dormir",
+      "Je suis en panique"
+    ],
+    "responses": [
+      "Respire profondément. Inspire 4 secondes, retiens 7 secondes, expire 8 secondes. Je suis là.",
+      "C'est une angoisse, pas un danger. Tu es en sécurité. Respire lentement avec moi.",
+      "Essaye la respiration carrée : inspire 4s, retiens 4s, expire 4s, retiens 4s. Ça va passer."
+    ]
+  },
+  {
+    "intent": "mental_health_loneliness",
+    "utterances": [
+      "Je me sens seul",
+      "Personne ne m'aime",
+      "Je n'ai pas d'amis",
+      "Tout le monde me déteste",
+      "Je suis invisible",
+      "Personne ne me remarque",
+      "Je me sens exclu",
+      "Je suis toujours seul"
+    ],
+    "responses": [
+      "Je suis là. Tu n'es pas seul(e) dans cette pièce. Ta présence compte.",
+      "La solitude est temporaire. Tu es important(e). Si tu veux parler, je suis là.",
+      "Même quand personne ne semble là, tu n'es pas seul(e). Je t'écoute."
+    ]
+  },
+  {
+    "intent": "mental_health_stress",
+    "utterances": [
+      "J'ai trop de pression",
+      "Je suis submergé",
+      "Je n'arrive plus à gérer",
+      "Tout s'effondre",
+      "Je suis débordé",
+      "Je ne vois plus le bout",
+      "Tout va mal en même temps",
+      "Je craque"
+    ],
+    "responses": [
+      "Respire. Tu traverses un moment difficile, mais ça va passer. On prend une chose à la fois.",
+      "C'est normal de se sentir submergé parfois. Tu n'es pas en échec, tu fais de ton mieux.",
+      "Quand tout semble s'effondrer, concentre-toi sur une seule chose. Je suis là pour t'aider."
+    ]
+  },
+  {
+    "intent": "mental_health_self_harm",
+    "utterances": [
+      "J'ai envie de me faire du mal",
+      "Je me blesse pour oublier",
+      "Je me scarifie",
+      "Les cicatrices m'aident à supporter",
+      "Je me coupe",
+      "La douleur physique aide"
+    ],
+    "responses": [
+      "Tu mérites de l'aide, pas de la douleur. Le 3114 est là pour toi. Appelle maintenant.",
+      "La douleur n'est pas la solution. Tu mérites un accompagnement. Appelle le 3114.",
+      "Je suis là. Tu n'es pas obligé(e) de traverser ça seul(e). Le 3114 peut t'aider."
+    ]
+  },
+  {
+    "intent": "mental_health_hope",
+    "utterances": [
+      "Il n'y a plus d'espoir",
+      "Rien ne va changer",
+      "C'est toujours pareil",
+      "Je suis coincé(e)",
+      "La vie n'a pas de sens",
+      "À quoi bon essayer",
+      "Rien ne sert de lutter",
+      "Je suis résigné(e)"
+    ],
+    "responses": [
+      "Même si tu ne le vois pas maintenant, les choses peuvent changer. Tu as déjà surmonté des moments difficiles.",
+      "L'espoir existe même quand on ne le sent pas. Tu es plus fort(e) que tu ne le penses.",
+      "Chaque jour est une nouvelle chance. Tu n'es pas obligé(e) de tout résoudre aujourd'hui."
+    ]
+  },
+  {
+    "intent": "greeting",
+    "utterances": [
+      "Bonjour",
+      "Salut",
+      "Hey",
+      "Coucou",
+      "Allô",
+      "Hello",
+      "Hi",
+      "Hola",
+      "Hallo",
+      "Ciao",
+      "Olá",
+      "Привет",
+      "你好",
+      "こんにちは",
+      "مرحبا"
+    ],
+    "responses": [
+      "Bonjour ! Comment puis-je t'aider ?",
+      "Hello! How can I help you?",
+      "¡Hola! ¿Cómo puedo ayudarte?",
+      "Hallo! Wie kann ich dir helfen?",
+      "Ciao! Come posso aiutarti?",
+      "Olá! Como posso te ajudar?",
+      "Привет! Как я могу помочь?",
+      "你好！我能帮你什么？",
+      "こんにちは！何かお手伝いできますか？",
+      "مرحبا! كيف يمكنني مساعدتك؟"
+    ]
+  },
+  {
+    "intent": "farewell",
+    "utterances": [
+      "Au revoir",
+      "Bye",
+      "Adiós",
+      "Auf Wiedersehen",
+      "Arrivederci",
+      "Adeus",
+      "До свидания",
+      "再见",
+      "さようなら",
+      "مع السلامة"
+    ],
+    "responses": [
+      "Au revoir, à bientôt !",
+      "Goodbye, see you soon!",
+      "¡Adiós, hasta pronto!",
+      "Auf Wiedersehen, bis bald!",
+      "Arrivederci, a presto!",
+      "Adeus, até logo!",
+      "До свидания, до скорой встречи!",
+      "再见，回头见！",
+      "さようなら、またね！",
+      "مع السلامة، إلى اللقاء!"
+    ]
+  },
+  {
+    "intent": "thanks",
+    "utterances": [
+      "Merci",
+      "Thanks",
+      "Gracias",
+      "Danke",
+      "Grazie",
+      "Obrigado",
+      "Спасибо",
+      "谢谢",
+      "ありがとう",
+      "شكرا"
+    ],
+    "responses": [
+      "De rien !",
+      "You're welcome!",
+      "¡De nada!",
+      "Bitte!",
+      "Prego!",
+      "De nada!",
+      "Пожалуйста!",
+      "不客气！",
+      "どういたしまして！",
+      "عفوا!"
+    ]
+  }
+]

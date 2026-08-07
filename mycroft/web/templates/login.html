@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Phoenix — Connexion</title>
+    <style>
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex; align-items: center; justify-content: center;
+            height: 100vh; margin: 0;
+        }
+        .card {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+        }
+        h1 { margin: 0 0 .5rem; font-size: 1.4rem; color: #38bdf8; }
+        p { color: #94a3b8; margin: 0 0 1.5rem; font-size: .9rem; }
+        input {
+            width: 100%; box-sizing: border-box;
+            padding: .6rem; margin-bottom: 1rem;
+            background: #0f172a; border: 1px solid #334155;
+            border-radius: 8px; color: #e2e8f0; font-size: 1rem;
+        }
+        button {
+            width: 100%; padding: .7rem;
+            background: #38bdf8; border: none; border-radius: 8px;
+            color: #0f172a; font-weight: 600; font-size: 1rem; cursor: pointer;
+        }
+        button:hover { background: #0ea5e9; }
+        .error { color: #f87171; margin: 0 0 1rem; font-size: .9rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Phoenix</h1>
+        <p>Assistant vocal local</p>
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <form method="post">
+            <input type="text" name="username" placeholder="Utilisateur" autofocus autocomplete="username">
+            <input type="password" name="password" placeholder="Mot de passe" autocomplete="current-password">
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
+</body>
+</html>
