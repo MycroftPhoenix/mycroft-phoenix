@@ -56,7 +56,7 @@ class SkillsManager:
         url = f"{RAW_URL}/{path}"
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-            return resp.read().decode("utf-8")
+            return resp.read().decode("utf-8-sig")
 
     # ─── Catalogue distant (API GitHub) ─────────────────────
     def list_remote(self):
@@ -85,7 +85,6 @@ class SkillsManager:
             return json.loads(self._raw(f"{CATALOG_DIR}/{skill_name}/skill.json"))
         except Exception:
             return {}
-
     # ─── Installer / desinstaller ───────────────────────────
     def install(self, skill_name):
         """Telecharge un skill depuis le catalogue vers skills_dir."""
@@ -154,7 +153,7 @@ class SkillsManager:
     def read_local_skill_json(self, skill_name):
         meta_file = self.skills_dir / skill_name / "skill.json"
         try:
-            return json.loads(meta_file.read_text(encoding="utf-8"))
+            return json.loads(meta_file.read_text(encoding="utf-8-sig"))
         except Exception:
             return {}
 
