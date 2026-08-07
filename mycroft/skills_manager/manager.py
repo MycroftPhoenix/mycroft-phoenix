@@ -2,8 +2,8 @@
 """Gestionnaire de skills Mycroft Phoenix.
 
 Remplace le MSM original (MycroftAI/mycroft-skills + backend mycroft.ai)
-par un systeme local branche sur le catalogue GitHub du projet
-(MycroftPhoenix/mycroft-phoenix, dossier skills/).
+par un systeme local branche sur le catalogue GitHub dedie
+(MycroftPhoenix/mycroft-phoenix-skills, skills a la racine).
 
 API GitHub publique (depot public) = aucune cle requise.
 """
@@ -22,12 +22,17 @@ LOG = logging.getLogger("mycroft.skills_manager")
 
 # Depot de catalogue par defaut (public, aucune cle).
 CATALOG_OWNER = "MycroftPhoenix"
-CATALOG_REPO = "mycroft-phoenix"
+CATALOG_REPO = "mycroft-phoenix-skills"
 CATALOG_BRANCH = "main"
-CATALOG_DIR = "skills"
+CATALOG_DIR = ""
 
 GITHUB_API = "https://api.github.com"
 RAW_URL = f"https://raw.githubusercontent.com/{CATALOG_OWNER}/{CATALOG_REPO}/{CATALOG_BRANCH}"
+
+
+def _cat_path(*parts):
+    """Joint les segments du chemin catalogue en evitant les slashes doubles."""
+    return "/".join(p.strip("/") for p in parts if p)
 
 
 class SkillsManager:
@@ -53,7 +58,7 @@ class SkillsManager:
             return json.loads(resp.read().decode("utf-8"))
 
     def _raw(self, path):
-        url = f"{RAW_URL}/{path}"
+        url = f"{RAW_URL}/{path.strip('/')}"
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:
             return resp.read().decode("utf-8-sig")
@@ -62,7 +67,7 @@ class SkillsManager:
     def list_remote(self):
         """Liste les skills disponibles dans le catalogue GitHub."""
         url = (f"{GITHUB_API}/repos/{self.catalog_owner}/{self.catalog_repo}"
-               f"/contents/{CATALOG_DIR}?ref={self.catalog_branch}")
+               f"/contents/{_cat_path(CATALOG_DIR)}?ref={self.catalog_branch}")
         items = self._get(url)
         skills = []
         for item in items:
@@ -82,7 +87,7 @@ class SkillsManager:
 
     def _read_remote_skill_json(self, skill_name):
         try:
-            return json.loads(self._raw(f"{CATALOG_DIR}/{skill_name}/skill.json"))
+            return json.loads(self._raw(_cat_path(CATALOG_DIR, skill_name, "skill.json")))
         except Exception:
             return {}
     # ─── Installer / desinstaller ───────────────────────────
@@ -96,14 +101,14 @@ class SkillsManager:
         if not meta:
             raise ValueError(f"Skill '{skill_name}' introuvable dans le catalogue.")
 
-        files = self._list_remote_tree(f"{CATALOG_DIR}/{skill_name}")
+        files = self._list_remote_tree(_cat_path(CATALOG_DIR, skill_name))
         if not files:
             raise ValueError(f"Aucun fichier trouve pour '{skill_name}'.")
 
         dest.mkdir(parents=True)
         try:
             for rel_path in files:
-                content = self._raw(f"{CATALOG_DIR}/{skill_name}/{rel_path}")
+                content = self._raw(_cat_path(CATALOG_DIR, skill_name, rel_path))
                 target = dest / rel_path
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text(content, encoding="utf-8")

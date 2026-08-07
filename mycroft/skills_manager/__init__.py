@@ -9,8 +9,10 @@ par un systeme local branche sur le catalogue GitHub du projet.
 - web.py     : serveur web local minimaliste (page + API JSON)
 - loader.py  : chargement dynamique des skills dans voice_loop
 
-Le catalogue est le dossier skills/ du depot MycroftPhoenix/mycroft-phoenix
-(public, donc aucune cle API requise).
+Le catalogue est le depot dedie MycroftPhoenix/mycroft-phoenix-skills
+(public, donc aucune cle API requise). Le coeur mycroft-phoenix n'a
+AUCUNE dependance vers les skills : en leur absence, il fonctionne
+normalement (routing sans skills).
 """
 
 from .manager import SkillsManager

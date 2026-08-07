@@ -1,3 +1,0 @@
-# Dépendances du skill storyteller (installées via pip)
-# Exemple : ollama requis pour la génération d'histoires.
-# Aucune dépendance Python obligatoire (API HTTP Ollama native).

@@ -80,3 +80,5 @@ test/unittests/skills/test_skill/settings.json
 **/backupmain
 **/skillloaderrbackup
 mycroft/tts/narrator py
+
+/skills/

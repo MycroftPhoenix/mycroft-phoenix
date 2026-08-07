@@ -1,2 +1,0 @@
-# Dépendances du skill date_time
-# Aucune dépendance Python obligatoire (librairie standard).
