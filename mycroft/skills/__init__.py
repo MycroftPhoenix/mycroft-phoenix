@@ -19,7 +19,8 @@ These classes, decorators and functions are used to build skills for Mycroft.
 
 # Tous les imports sont desactives pour eviter les dependances lourdes
 # (framework Mycroft complet, inutilise par Phoenix). Charger uniquement
-# ce qui est necessaire via import direct (ex: mycroft.skills.storyteller).
+# ce qui est necessaire via import direct. Les skills vivent dans le
+# catalogue dedie mycroft-phoenix-skills, pas dans le core.
 MycroftSkill = intent_handler = intent_file_handler = resting_screen_handler = None
 skill_api_method = AdaptIntent = FallbackSkill = CommonIoTSkill = None
 CommonPlaySkill = CPSMatchLevel = CommonQuerySkill = CQSMatchLevel = None

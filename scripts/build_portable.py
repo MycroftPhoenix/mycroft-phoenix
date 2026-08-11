@@ -143,9 +143,11 @@ Les fichiers suivants sont dans ce zip:
   mycroft/audio/voice_loop.py - Boucle vocale principale
   scripts/         - Bootstrap et outils
   mycroft/         - Pipeline NLU et modules
-  skills/          - Skills (storyteller, etc.)
   intents/         - Base d'intents
   venv/            - Environnement Python pré-installé
+
+  (Les skills sont installes au runtime depuis le catalogue
+   mycroft-phoenix-skills, pas inclus dans ce zip.)
 """)
 
     # Zipper

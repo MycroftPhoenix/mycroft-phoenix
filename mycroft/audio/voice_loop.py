@@ -427,20 +427,18 @@ class VoiceLoop:
         self.hub = get_hub()
         self.hub.on("phoenix.speak", self._on_speak)
 
-        # Skills installes (catalogue skills/ -> data_dir/skills).
+        # Skills installes (catalogue mycroft-phoenix-skills -> data_dir/skills).
         # Scan auto : chaque skill suit le contrat Phoenix
         # (create_skill + init + _detect_*_intent + _handle_utterance).
-        # En mode source, charge aussi le dossier skills/ du projet.
+        # Le depot core est volontairement sans skills (comme mycroft-core).
         self.skills = []
         try:
             from mycroft.data_manager import DataManager
             dm = DataManager()
-            skills_dirs = [PROJECT_ROOT / "skills",
-                           dm.get_data_dir() / "skills"]
-            for skills_dir in skills_dirs:
-                if skills_dir.is_dir():
-                    self.skills += scan_skills(skills_dir, self.hub,
-                                               tts=self.tts)
+            skills_dir = dm.get_data_dir() / "skills"
+            if skills_dir.is_dir():
+                self.skills += scan_skills(skills_dir, self.hub,
+                                           tts=self.tts)
             print(f"[Skills] {len(self.skills)} skill(s) charge(s)")
         except Exception as e:
             print(f"[Skills] Désactivés: {e}")
