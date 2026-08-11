@@ -72,6 +72,19 @@
     "install_command": "pip install chatterbot==1.2.14 chatterbot-corpus-py real_ladybug pyyaml click",
     "import_command": "python -m mycroft.lora.mycroft_corpus import --lang fr --skills <dossier_skills_mycroft> --data-dir data --chatterbot-corpus"
   },
+  "ai": {
+    "enabled": true,
+    "priority": 6,
+    "timeout_s": 10,
+    "description": "Fournisseurs d'IA externes en failover (priorite 5 du IntentMatcher, apres LadybugChatter, avant le fallback). Chaque reponse est apprise dans LadybugDB. type 'local' = pipeline Phoenix lui-meme (defaut).",
+    "providers": [
+      {"id": "local", "type": "local", "description": "Pipeline Phoenix local (defaut)"},
+      {"id": "ollama", "type": "ollama", "host": "localhost", "port": 11434, "model": "qwen2.5:1.5b"},
+      {"id": "satellite", "type": "mycroft", "url": "http://192.168.1.10:8090", "api_key_env": "PHOENIX_TOKEN"},
+      {"id": "dev", "type": "opencode", "directory": "D:/mycroft-phoenix bon/opencode"},
+      {"id": "openai", "type": "openai", "model": "gpt-4o-mini", "api_key_env": "OPENAI_API_KEY"}
+    ]
+  },
   "setup": {"completed": false, "first_run": true},
   "web": {
     "enabled": true,

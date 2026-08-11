@@ -254,8 +254,16 @@ class PhoenixPipeline:
         except Exception as e:
             logger.debug("LadybugChatter non initialisé: %s", e)
 
+        # AI backends (fournisseurs externes, failover — section ai de la config)
+        ai = None
+        try:
+            from mycroft.lora.ai_backend import ai_backends_from_config
+            ai = ai_backends_from_config(self.config)
+        except Exception as e:
+            logger.debug("AI backends non initialisés: %s", e)
+
         db_path = os.path.join(self.base_dir, "data", "phoenix_intents.db")
-        self.intent_matcher = IntentMatcher(self.kuzu_manager, db_path=db_path, chatter=chatter)
+        self.intent_matcher = IntentMatcher(self.kuzu_manager, db_path=db_path, chatter=chatter, ai=ai)
         self.intent_matcher.initialize()
         
         # Charger intents depuis fichiers JSON
@@ -645,6 +653,10 @@ class PhoenixPipeline:
                         "fr": "Je n'arrive pas a recuperer la meteo pour l'instant.",
                         "en": "I can't get the weather right now.",
                     }.get(detected_lang, "Je n'arrive pas a recuperer la meteo pour l'instant.")
+            elif intent_name == "ai":
+                # Réponse d'un backend IA externe (priorité 5 du IntentMatcher) :
+                # déjà apprise dans LadybugDB par le matcher.
+                response = intent_result.get("response") or "Je n'ai pas compris."
             elif intent_name == "unknown":
                 # FIX: le LLM doit repondre meme sans contexte web (context vide).
                 # Avant: "and context" bloquait TOUT appel LLM des qu'aucune
@@ -836,6 +848,12 @@ class PhoenixPipeline:
         return self.kuzu_manager.count_research()
 
     def status(self) -> Dict:
+        ai_status = None
+        if self.intent_matcher and getattr(self.intent_matcher, "ai", None):
+            try:
+                ai_status = self.intent_matcher.ai.status()
+            except Exception:
+                ai_status = None
         return {
             "intent_matcher": self.intent_matcher.status() if self.intent_matcher else None,
             "spacy": self.spacy_nlp is not None,
@@ -845,6 +863,7 @@ class PhoenixPipeline:
             "hardware_profile": self._hw_info.get("profile") if self._hw_info else None,
             "kuzu": self.kuzu_manager.status() if self.kuzu_manager else None,
             "research_count": self.research_count(),
+            "ai_backends": ai_status,
         }
 
     def shutdown(self):

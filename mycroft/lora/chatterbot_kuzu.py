@@ -22,7 +22,9 @@ class IntentMatcher:
     1. Crisis check (system DB, priorité absolue)
     2. Keywords (intents fixes, confiance haute)
     3. IntentEngine (TF-IDF, fuzzy matching)
-    4. Fallback
+    4. LadybugChatter (conversationnel LadybugDB)
+    5. AI backends (fournisseurs externes, failover)
+    6. Fallback
 
     System DB (phoenix.kuzu): intents, crises, config → READ-ONLY
     Personal DB (phoenix_personal.kuzu): conversations, skills → wipeable
@@ -33,6 +35,7 @@ class IntentMatcher:
         kuzu_manager,
         db_path: str = "./data/intents.db",
         chatter=None,
+        ai=None,
     ):
         """
         Args:
@@ -41,11 +44,14 @@ class IntentMatcher:
             chatter: LadybugChatter optionnel (fallback conversationnel
                 LadybugDB) — skills d'abord, LLM ensuite, Chatter en dernier
                 recours avant le fallback générique.
+            ai: AIBackends optionnel (fournisseurs d'IA externes en failover,
+                priorité 5) — chaque réponse est apprise dans LadybugDB.
         """
         self.kuzu_manager = kuzu_manager
         self.kuzu_graph = kuzu_manager.system_conn
         self.db_path = db_path
         self.chatter = chatter
+        self.ai = ai
         self._engine = None
         self._intents: Dict[str, List[str]] = {}
         
@@ -152,7 +158,23 @@ class IntentMatcher:
             except Exception as e:
                 logger.debug(f"LadybugChatter erreur: {e}")
 
-        # PRIORITÉ 5: Fallback
+        # PRIORITÉ 5: AI backends (fournisseurs externes, failover)
+        # Avant le fallback générique. La réponse est ensuite apprise dans
+        # LadybugDB (distillation → le local finit par répondre seul).
+        if result is None and self.ai is not None and self.ai.enabled:
+            try:
+                ai_text, provider_id = self.ai.chat(text)
+                if ai_text:
+                    result = {
+                        "intent": "ai",
+                        "confidence": 0.8,
+                        "response": ai_text,
+                        "source": f"ai:{provider_id}",
+                    }
+            except Exception as e:
+                logger.debug(f"AI backends erreur: {e}")
+
+        # PRIORITÉ 6: Fallback
         if result is None:
             result = {
                 "intent": "unknown",
