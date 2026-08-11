@@ -140,62 +140,72 @@ class GraphIntentBackend(SkillIntentBackend):
 
     def _conn(self):
         db = self._graph.Database(str(self.db_path))
-        return self._graph.Connection(db)
+        conn = self._graph.Connection(db)
+        return db, conn
+
+    @staticmethod
+    def _close(db, conn) -> None:
+        """Ferme la connexion puis la base (lock single-writer real_ladybug)."""
+        try:
+            conn.close()
+        except Exception:
+            pass
+        try:
+            db.close()
+        except Exception:
+            pass
 
     def _init_schema(self) -> None:
-        conn = self._conn()
+        db, conn = self._conn()
         try:
             conn.execute("CREATE NODE TABLE Intent (name STRING, skill STRING, PRIMARY KEY (name))")
-        except Exception:
-            pass
-        try:
             conn.execute("CREATE NODE TABLE Utterance (text STRING, PRIMARY KEY (text))")
-        except Exception:
-            pass
-        try:
             conn.execute("CREATE REL TABLE HAS (FROM Intent TO Utterance)")
-        except Exception:
-            pass
-        try:
             conn.execute("CREATE NODE TABLE IntentIndex (id INT64, intent_name STRING, PRIMARY KEY (id))")
         except Exception:
-            pass
+            pass  # tables déjà existantes
+        self._close(db, conn)
 
     def load(self) -> Dict[str, List[str]]:
         result: Dict[str, List[str]] = {}
         try:
-            conn = self._conn()
+            db, conn = self._conn()
             r = conn.execute(
                 "MATCH (i:Intent)-[:HAS]->(u:Utterance) RETURN i.name, u.text ORDER BY i.name"
             )
-            for row in r.get_as_arrow().to_pylist():
+            # rows_as_dict : compatible real_ladybug SANS pyarrow
+            for row in r.rows_as_dict():
                 name = row.get("i.name")
                 text = row.get("u.text")
                 if name and text:
                     result.setdefault(name, []).append(text)
+            self._close(db, conn)
         except Exception as e:
             logger.warning("lecture graphe d'intents impossible: %s", e)
         return result
 
     def add_intent(self, skill: str, intent: str, examples: List[str]) -> None:
-        conn = self._conn()
-        for ex in examples:
-            conn.execute(
-                "MERGE (i:Intent {name: $n, skill: $s})",
-                parameters={"n": intent, "s": skill},
-            )
-            conn.execute(
-                "MERGE (u:Utterance {text: $t})",
-                parameters={"t": ex},
-            )
-            conn.execute(
-                "MATCH (i:Intent {name: $n}) MATCH (u:Utterance {text: $t}) "
-                "MERGE (i)-[:HAS]->(u)",
-                parameters={"n": intent, "t": ex},
-            )
+        db, conn = self._conn()
+        try:
+            for ex in examples:
+                conn.execute(
+                    "MERGE (i:Intent {name: $n, skill: $s})",
+                    parameters={"n": intent, "s": skill},
+                )
+                conn.execute(
+                    "MERGE (u:Utterance {text: $t})",
+                    parameters={"t": ex},
+                )
+                conn.execute(
+                    "MATCH (i:Intent {name: $n}) MATCH (u:Utterance {text: $t}) "
+                    "MERGE (i)-[:HAS]->(u)",
+                    parameters={"n": intent, "t": ex},
+                )
+        finally:
+            self._close(db, conn)
 
     def remove_example(self, skill: str, intent: str, example: str) -> bool:
-        conn = self._conn()
+        db, conn = self._conn()
         try:
             conn.execute(
                 "MATCH (i:Intent {name: $n})-[r:HAS]->(u:Utterance {text: $t}) DELETE r",
@@ -205,6 +215,8 @@ class GraphIntentBackend(SkillIntentBackend):
         except Exception as e:
             logger.warning("suppression graphe impossible: %s", e)
             return False
+        finally:
+            self._close(db, conn)
 
 
 # ── Fabrique ───────────────────────────────────────────────────────────────

@@ -32,15 +32,20 @@ class IntentMatcher:
         self,
         kuzu_manager,
         db_path: str = "./data/intents.db",
+        chatter=None,
     ):
         """
         Args:
             kuzu_manager: Instance KuzuManager (triple DB)
             db_path: Chemin pour IntentEngine
+            chatter: LadybugChatter optionnel (fallback conversationnel
+                LadybugDB) — skills d'abord, LLM ensuite, Chatter en dernier
+                recours avant le fallback générique.
         """
         self.kuzu_manager = kuzu_manager
         self.kuzu_graph = kuzu_manager.system_conn
         self.db_path = db_path
+        self.chatter = chatter
         self._engine = None
         self._intents: Dict[str, List[str]] = {}
         
@@ -131,7 +136,23 @@ class IntentMatcher:
             except Exception as e:
                 logger.debug(f"IntentEngine erreur: {e}")
 
-        # PRIORITÉ 4: Fallback
+        # PRIORITÉ 4: LadybugChatter (conversationnel LadybugDB, si dispo)
+        # Avant le fallback générique pour répondre naturellement aux
+        # variations imprévues apprises dans le corpus.
+        if result is None and self.chatter is not None:
+            try:
+                chat_statement = self.chatter.get_response(text)
+                if chat_statement is not None and chat_statement.text:
+                    result = {
+                        "intent": "conversation",
+                        "confidence": float(getattr(chat_statement, "confidence", 0) or 0.5),
+                        "response": chat_statement.text,
+                        "source": "ladybug_chatter",
+                    }
+            except Exception as e:
+                logger.debug(f"LadybugChatter erreur: {e}")
+
+        # PRIORITÉ 5: Fallback
         if result is None:
             result = {
                 "intent": "unknown",
@@ -139,6 +160,19 @@ class IntentMatcher:
                 "response": "Je ne suis pas sûr de comprendre.",
                 "source": "fallback",
             }
+
+        # Apprentissage conversationnel : mémoriser (input → réponse) quand
+        # la réponse ne vient pas déjà du LadybugChatter.
+        if (
+            self.chatter is not None
+            and result.get("response")
+            and result.get("intent") != "unknown"
+            and result.get("source") != "ladybug_chatter"
+        ):
+            try:
+                self.chatter.learn(text, str(result["response"]))
+            except Exception as e:
+                logger.debug("apprentissage LadybugChatter: %s", e)
 
         # Logger dans la base personnelle (si disponible)
         if self.kuzu_manager and result.get("response"):

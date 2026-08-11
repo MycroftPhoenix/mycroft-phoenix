@@ -63,10 +63,14 @@
     "presets": ["hey phoenix", "hey mycroft", "phoenix", "mycroft", "custom", "none"]
   },
   "chatterbot": {
-    "enabled": false,
-    "installed": false,
-    "description": "ML conversationnel - ameliore le matching sur variations imprevues",
-    "install_command": "pip install chatterbot==1.2.8 chatterbot-corpus-py"
+    "enabled": true,
+    "installed": true,
+    "backend": "ladybug",
+    "threshold": 0.55,
+    "corpora": ["chatterbot", "mycroft"],
+    "description": "Corpus conversationnels (ChatterBot + Mycroft) stockes dans LadybugDB: data/chatterbot/<lang>_corpus.lbdb (verrouillee) + <lang>_user.lbdb (apprentissage)",
+    "install_command": "pip install chatterbot==1.2.14 chatterbot-corpus-py real_ladybug pyyaml click",
+    "import_command": "python -m mycroft.lora.mycroft_corpus import --lang fr --skills <dossier_skills_mycroft> --data-dir data --chatterbot-corpus"
   },
   "setup": {"completed": false, "first_run": true},
   "web": {

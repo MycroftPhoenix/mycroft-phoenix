@@ -37,6 +37,14 @@ piper-tts
 # ── Optionnel: audio ──
 python-vlc==1.1.2
 
-# ── Optionnel: ChatterBot (ML conversationnel) ──
-# chatterbot==1.2.8
+# ── Optionnel: Corpus conversationnel (LadybugDB) ──
+# ChatterBot sert a GENERER le corpus (paires Q->A) ; le runtime lit/ecrit
+# dans LadybugDB (real_ladybug) via mycroft/lora/chatterbot_ladybug.py.
+# chatterbot==1.2.14 (py3.10+), real_ladybug (remplace kuzu, API compatible).
+# chatterbot==1.2.14
 # chatterbot-corpus-py
+# chatterbot-corpus (shim manuel: chatterbot_corpus/corpus.py -> chatterbot_corpus_py.data)
+# real_ladybug
+# pyyaml
+# click
+# spacy<3.9 (dep real de chatterbot; non requis si on n'utilise que le corpus)

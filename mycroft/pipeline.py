@@ -243,11 +243,19 @@ class PhoenixPipeline:
         # 1c. Web research module (import tardif dans research())
         self._research_init_done = True
 
-        # 2. IntentMatcher (ChatterBot + Kuzu system)
+        # 2. IntentMatcher (IntentEngine + Kuzu system) avec fallback
+        #    conversationnel LadybugDB (chatterbot section config, si activé)
         from mycroft.lora.chatterbot_kuzu import IntentMatcher
 
+        chatter = None
+        try:
+            from mycroft.lora.chatterbot_ladybug import ladybug_chatter_from_config
+            chatter = ladybug_chatter_from_config(self.config, self.base_dir)
+        except Exception as e:
+            logger.debug("LadybugChatter non initialisé: %s", e)
+
         db_path = os.path.join(self.base_dir, "data", "phoenix_intents.db")
-        self.intent_matcher = IntentMatcher(self.kuzu_manager, db_path=db_path)
+        self.intent_matcher = IntentMatcher(self.kuzu_manager, db_path=db_path, chatter=chatter)
         self.intent_matcher.initialize()
         
         # Charger intents depuis fichiers JSON
