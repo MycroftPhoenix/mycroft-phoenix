@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Phoenix — Panneau de contrôle</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Phoenix <span class="sub">Panneau de contrôle</span></h1>
+    <div id="conn" class="badge">…</div>
+  </header>
+
+  <main>
+    <section class="card" id="card-status">
+      <h2>Santé des backends IA</h2>
+      <table id="tbl-status">
+        <thead><tr><th>ID</th><th>Type</th><th>État</th><th>Test</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button id="btn-refresh-status">Actualiser</button>
+    </section>
+
+    <section class="card">
+      <h2>Backends IA</h2>
+      <label class="row">
+        <input type="checkbox" id="ai-enabled" /> Activé
+      </label>
+      <div class="row">
+        <label>Priorité <input type="number" id="ai-priority" min="1" max="10" style="width:60px" /></label>
+        <label>Timeout (s) <input type="number" id="ai-timeout" min="1" max="120" style="width:70px" /></label>
+      </div>
+      <div id="providers"></div>
+      <div class="actions">
+        <button id="btn-add">+ Ajouter</button>
+        <button id="btn-save" class="primary">Enregistrer</button>
+        <span id="save-msg"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Chat de test</h2>
+      <div class="row">
+        <input type="text" id="chat-input" placeholder="Pose une question…" />
+        <button id="btn-chat">Envoyer</button>
+      </div>
+      <div id="chat-out" class="chat-out"></div>
+    </section>
+
+    <section class="card">
+      <h2>Système</h2>
+      <pre id="sys-info"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Mémoire (LadybugDB)</h2>
+      <pre id="mem-info"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Diagnostic</h2>
+      <pre id="diag-info"></pre>
+    </section>
+  </main>
+
+  <footer>Mycroft-Phoenix · mycroft/admin · P1</footer>
+  <script src="/app.js"></script>
+</body>
+</html>
