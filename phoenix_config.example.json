@@ -25,18 +25,20 @@
     "max_tokens": 200
   },
   "stt": {
-    "provider": "vosk",
+    "engine": "vosk",
     "model": "vosk-model-small-fr-0.22",
     "model_path": "VOSK_MODEL_PATH",
     "sample_rate": 16000,
-    "language": "fr"
+    "language": "fr",
+    "description": "Reconnaissance vocale. Moteurs: vosk (hors-ligne leger, defaut), whisper (faster-whisper, qualite max), dummy (tests). Le core n'expose qu'une interface: doc/design_stt_tts_plugins.md"
   },
   "tts": {
-    "provider": "piper",
+    "engine": "piper",
     "voice": "fr_FR-siwis-medium",
     "voice_path": "PIPER_VOICE_PATH",
     "piper_path": "PIPER_BIN_PATH",
-    "sample_rate": 22050
+    "sample_rate": 22050,
+    "description": "Synthese vocale. Moteurs: piper (leger, Pi), kokoro (ONNX, temps reel sur CPU desktop), pico (pico2wave ultra leger), dummy (tests). Exemple kokoro: { \"engine\": \"kokoro\", \"model_path\": \"kokoro-v1.0.onnx\", \"voices_path\": \"voices-v1.0.bin\", \"voice\": \"af_heart\", \"language\": \"fr\" }"
   },
   "memory": {
     "kuzu_graph": "phoenix",
