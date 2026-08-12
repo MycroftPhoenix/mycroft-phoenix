@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mycroft-lora-win"
+version = "0.1.0"
+description = "Intégration native Windows (SAPI TTS/STT, shell) pour Mycroft-Phoenix — successeur local de Cortana"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = []  # aucune dépendance pip : utilise PowerShell + System.Speech (intégré Windows)
+
+[project.optional-dependencies]
+voice = ["mycroft-lora-voice"]
+
+[tool.setuptools.packages.find]
+include = ["mycroft_lora_win*"]

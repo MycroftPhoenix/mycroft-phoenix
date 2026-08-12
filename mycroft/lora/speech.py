@@ -414,6 +414,21 @@ def _engine_name(cfg: dict) -> str:
     return str(cfg.get("engine") or cfg.get("provider") or "dummy").lower()
 
 
+def register_optional_plugins() -> None:
+    """Branche les paquets optionnels (ex. ``mycroft_lora_win``) sur le bus.
+
+    Aucune dépendance dure : import optionnel, ignoré si le paquet est absent
+    ou non installé. C'est le point d'entrée du « bus standardisé » — le core
+    ne connaît pas les moteurs tiers, il les découvre ici.
+    """
+    for modname in ("mycroft_lora_win",):
+        try:
+            mod = __import__(modname)
+            mod.register(_TTS_REGISTRY, _STT_REGISTRY)
+        except Exception:  # pragma: no cover - paquet optionnel
+            logger.debug("plugin optionnel %s indisponible", modname)
+
+
 def build_tts(cfg: dict) -> Optional[TTSBackend]:
     cls = _TTS_REGISTRY.get(_engine_name(cfg))
     if cls is None:
@@ -449,3 +464,9 @@ def speech_from_config(config: dict):
     if tts is None and tts_cfg:
         logger.warning("Aucun moteur TTS actif (config: %s)", tts_cfg)
     return stt, tts
+
+
+# Découverte des plugins optionnels au chargement du module (bus standardisé).
+# Rend les moteurs tiers (ex. mycroft_lora_win -> engine "windows") sélectionnables
+# depuis phoenix_config.json sans aucune dépendance dure du core.
+register_optional_plugins()

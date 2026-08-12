@@ -143,3 +143,34 @@ Test rapide (sans carte son) : le moteur doit répondre `healthy: true` au
    de l'eau (`yield`) pour un démarrage audio rapide.
 6. **`status()` explicite** : indiquez `healthy` et les infos utiles au
    diagnostic du panneau web.
+
+## 7. Éléments Windows (`mycroft-lora-win`) — sélection granulaire
+
+Paquet autonome (aucune dépendance du core, aucune dépendance pip) qui exploite
+la couche vocale/shell native de Windows (SAPI / `System.Speech`) — successeur
+*local et privé* de Cortana. Il se branche sur le bus via `register()` (appelé
+auto au chargement de `speech.py` par `register_optional_plugins()`), donc
+**aucune dépendance dure** : absent ⇒ ignoré.
+
+Chaque élément Windows est **sélectionnable individuellement** depuis la config :
+
+```json
+{
+  "tts":  { "engine": "windows", "language": "fr", "voice": "Microsoft Hortense Desktop" },
+  "stt":  { "engine": "windows", "language": "fr-FR" },
+  "windows": {
+    "notifications": true,
+    "app_launch":   true,
+    "media":        false
+  }
+}
+```
+
+- `tts`/`stt` → moteurs Windows (`engine: "windows"`), voix auto-sélectionnée
+  par culture (`find_voice`) si `voice` non précisé.
+- `windows.notifications` → toasts (WinRT `pywinrt`, différé).
+- `windows.app_launch` → lancement d'apps / ouverture Paramètres.
+- `windows.media` → contrôle média (WinRT, différé).
+
+Le core lit `windows` et instancie `WindowsShell(cfg["windows"])` ; chaque
+capacité peut être désactivée à la carte sans toucher au reste.
