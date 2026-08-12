@@ -1,0 +1,36 @@
+{
+  "origin": [
+    "#salutation#, #question#",
+    "#salutation# ! #question#",
+    "#salutation##expression#, #question#"
+  ],
+  "salutation": ["Salut", "Bonjour", "Hello", "Hey", "Coucou", "Bienvenue", "Oh, salut"],
+  "expression": ["", " c'est moi", " mon ami", " tout va bien ici"],
+  "question": [
+    "comment ça va aujourd'hui ?",
+    "comment vas-tu ?",
+    "qu'est-ce que je peux faire pour toi ?",
+    "de quoi veux-tu parler ?",
+    "tu veux qu'on discute ?",
+    "comment s'est passée ta journée ?"
+  ],
+  "fallback": [
+    "Je n'ai pas tout compris, tu peux reformuler ?",
+    "Hmm, je ne suis pas sûr d'avoir saisi. Peux-tu répéter autrement ?",
+    "Je ne connais pas encore la réponse à ça. Essaie autrement ?",
+    "Bonne question… je vais devoir y réfléchir. Reformule peut-être ?"
+  ],
+  "accord": [
+    "Bien sûr",
+    "D'accord",
+    "Avec plaisir",
+    "C'est parti",
+    "Tout de suite"
+  ],
+  "au_revoir": [
+    "À bientôt !",
+    "Bonne journée, prends soin de toi.",
+    "À plus tard !",
+    "Reviens quand tu veux."
+  ]
+}

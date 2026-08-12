@@ -1,0 +1,18 @@
+{
+  "_description": "Paires question/reponse pour entrainer ChatterBot. Les actions [objet:...][action:...] du user sont reutilisees par le bot (pile Tracery) pour des paires coherentes.",
+  "user": [
+    "[objet:#objet#][action:#action#]je veux #action# #objet#",
+    "[objet:#objet#][action:#action#]peux-tu #action# #objet# ?",
+    "[objet:#objet#][action:#action#]#action# #objet# s'il te plait",
+    "[objet:#objet#][action:#action#]j'aimerais que tu #action# #objet#"
+  ],
+  "bot": [
+    "Bien sûr, je #reponse# #objet#.",
+    "D'accord, je m'en occupe : je #reponse# #objet#.",
+    "Oui, je #reponse# #objet# tout de suite.",
+    "Avec plaisir, je #reponse# #objet# pour toi."
+  ],
+  "objet": ["de la musique", "une chanson", "de la musique relaxante", "un peu de jazz"],
+  "action": ["ecouter", "mettre", "jouer", "lancer"],
+  "reponse": ["lance", "mets", "joue", "demarre"]
+}

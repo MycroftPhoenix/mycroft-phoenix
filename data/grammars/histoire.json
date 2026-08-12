@@ -1,0 +1,44 @@
+{
+  "_description": "Histoires courtes et douces (storytelling). Reutilise un personnage via la pile Tracery ([perso:...]) pour la coherence du recit.",
+  "origin": [
+    "#titre#\n\n#debut# #milieu# #fin#",
+    "#debut# #milieu# #fin#"
+  ],
+  "titre": [
+    "La #couleur# #lieu#",
+    "Le #animal# et la #chose#",
+    "#perso_epithete# et #destin#"
+  ],
+  "couleur": ["foret bleue", "vallee doree", "riviere argente", "nuit violette"],
+  "lieu": ["du crepuscule", "des murmures", "des etoiles tombees", "des lanternes"],
+  "animal": ["renard", "hibou", "cerf", "chaton", "papillon"],
+  "chose": ["lune", "cle oubliee", "lanterne", "plume"],
+  "perso_epithete": ["La petite Mia", "Le vieux marin", "Un voyageur curieux", "La gardienne des vents"],
+  "destin": ["la mer apaisee", "le chemin de retour", "la lumiere du matin", "l'etoile polaire"],
+  "debut": [
+    "[perso:#personnage#]Il etait une fois #perso#.",
+    "[perso:#personnage#]Sous un ciel #adjectif#, #perso# avançait sans se presser.",
+    "[perso:#personnage#]Dans un #lieu2#, #perso# s'eveillait doucement."
+  ],
+  "personnage": ["une enfant curieuse", "un loup solitaire", "une etoile voyageuse", "un petit renard"],
+  "adjectif": ["doux", "immense", "scintillant", "serein"],
+  "lieu2": ["vallon tranquille", "jardin oublie", "bois argenté"],
+  "milieu": [
+    "Sur le chemin, #objet_histoire# apparut devant #perso#.",
+    "Un souffle de #element# entoura #perso#, comme une invitation.",
+    "#Animal# montra a #perso# #cachette#."
+  ],
+  "objet_histoire": ["une petite lanterne", "un livre ancien", "une plume d'argent", "une boussole chaleureuse"],
+  "element": ["vent", "lumiere", "silence", "miel"],
+  "Animal": ["Un renard", "Un hibou", "Un cerf", "Un chaton"],
+  "cachette": ["un bosquet secret", "une grotte tranquille", "le sommet d'une colline", "une cabane de branches"],
+  "fin": [
+    "Au matin, #tout# allait bien, et #perso# sourit.",
+    "Et depuis ce jour, #lecon#.",
+    "#Perso_cap# sourit, car #promesse#."
+  ],
+  "tout": ["le monde", "la vallee", "son cœur", "les etoiles"],
+  "lecon": ["les etoiles restaient douces", "chaque pas comptait", "la peur s'etait envolee", "la gentillesse revenait toujours"],
+  "promesse": ["elle n'etait plus seule", "l'aventure ne faisait que commencer", "la lumiere revenait toujours", "on la retrouverait"],
+  "Perso_cap": ["Elle", "Il", "Elle"]
+}
