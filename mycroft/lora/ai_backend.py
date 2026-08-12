@@ -164,6 +164,7 @@ class OpenCodeBackend(AIBackend):
 
     def __init__(self, provider: dict):
         super().__init__(provider)
+        self.timeout = float(provider.get("timeout_s") or 90)  # une session agent est lente
         self.directory = provider.get("directory")
         self.agent = provider.get("agent", "build")
         self.bin = provider.get("bin") or "opencode"
@@ -175,16 +176,24 @@ class OpenCodeBackend(AIBackend):
         prompt = text
         if context:
             prompt = f"Contexte:\n{context[:2000]}\n\nQuestion: {text}"
-        cmd = [self.bin, "run", "--agent", self.agent, "--project", self.directory or ".", prompt]
+        parts = [self.bin, "run", "--agent", self.agent]
+        if self.directory:
+            parts += ["--dir", self.directory]
+        parts.append(prompt)
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=self.timeout,
-            )
+            if os.name == "nt":
+                # opencode est un shim .cmd : non exécutable directement par
+                # CreateProcess → on passe par le shell (list2cmdline quote).
+                command = subprocess.list2cmdline(parts)
+                result = subprocess.run(
+                    command, shell=True, capture_output=True, text=True,
+                    encoding="utf-8", errors="replace", timeout=self.timeout,
+                )
+            else:
+                result = subprocess.run(
+                    parts, capture_output=True, text=True,
+                    encoding="utf-8", errors="replace", timeout=self.timeout,
+                )
             if result.returncode != 0:
                 logger.debug("opencode run rc=%s: %s", result.returncode, result.stderr[-300:])
                 return None

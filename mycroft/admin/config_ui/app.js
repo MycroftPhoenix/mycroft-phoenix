@@ -224,6 +224,23 @@ document.addEventListener("click", (e) => {
 // ── Chat ─────────────────────────────────────────────────────────────────
 $("btn-chat").addEventListener("click", sendChat);
 $("chat-input").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+$("btn-history").addEventListener("click", loadHistory);
+
+async function loadHistory() {
+  const out = $("chat-out");
+  const r = await apiGet("/api/chat?limit=30");
+  const hist = r.history || [];
+  out.innerHTML = "";
+  if (!hist.length) {
+    out.innerHTML = "<div class='muted'>Aucun échange en mémoire (LadybugDB) pour l'instant.</div>";
+    return;
+  }
+  hist.forEach((h) => {
+    out.innerHTML += `<div><b>Vous :</b> ${esc(h.question)}</div>
+      <div><b>Phoenix</b> <span class="tag">${esc(h.source || "")}</span> : ${esc(h.response)}</div>`;
+  });
+  out.scrollTop = out.scrollHeight;
+}
 
 async function sendChat() {
   const text = $("chat-input").value.trim();

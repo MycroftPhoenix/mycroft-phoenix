@@ -31,7 +31,7 @@ import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from mycroft.admin.config import AdminConfig
 from mycroft.lora.ai_backend import AIBackends, ai_backends_from_config
@@ -52,19 +52,55 @@ _MIME = {
 
 
 class AdminApp:
-    """État partagé du serveur (config + backends AI)."""
+    """État partagé du serveur (config + backends AI + pipeline optionnel)."""
 
-    def __init__(self, base_dir: str, config_file: str = "phoenix_config.json", pipeline=None):
+    def __init__(self, base_dir: str, config_file: str = "phoenix_config.json", pipeline=None,
+                 with_pipeline: bool = False):
         self.base_dir = str(base_dir)
         self.config_file = config_file
         self.config = AdminConfig(base_dir, config_file)
         self.pipeline = pipeline
         self.ai: Optional[AIBackends] = ai_backends_from_config(self.config.config)
         self.started_at = time.time()
+        # Pipeline embarqué (P2) : construit paresseusement, une seule fois
+        self.with_pipeline = bool(pipeline is None and with_pipeline)
+        self._pipeline_lock = threading.Lock()
+        self._pipeline_built = False
 
     def rebuild_ai(self) -> Optional[AIBackends]:
         self.ai = ai_backends_from_config(self.config.config)
         return self.ai
+
+    def get_pipeline(self):
+        """Retourne le pipeline Phoenix (attaché ou construit paresseusement)."""
+        if self.pipeline is not None:
+            return self.pipeline
+        if not self.with_pipeline:
+            return None
+        with self._pipeline_lock:
+            if self._pipeline_built:
+                return self.pipeline
+            self._pipeline_built = True
+            try:
+                from mycroft.pipeline import PhoenixPipeline
+                logger.info("Construction du pipeline Phoenix embarqué (%s)", self.base_dir)
+                pipe = PhoenixPipeline(self.base_dir)
+                pipe.initialize()
+                self.pipeline = pipe
+                logger.info("Pipeline Phoenix prêt")
+            except Exception as e:
+                logger.warning("Pipeline embarqué indisponible: %s", e)
+                self.pipeline = None
+            return self.pipeline
+
+    def close_pipeline(self):
+        pipe = self.pipeline
+        if pipe is not None:
+            try:
+                pipe.shutdown()
+            except Exception as e:
+                logger.debug("Fermeture pipeline: %s", e)
+            self.pipeline = None
 
 
 def _web_config(app: AdminApp) -> dict:
@@ -168,6 +204,10 @@ class AdminHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"ok": True, **self._memory_info()})
         elif path == "/api/diagnostic":
             self._send_json(200, {"ok": True, **self._diagnostic()})
+        elif path == "/api/chat":
+            qs = parse_qs(parsed.query)
+            limit = int((qs.get("limit") or ["20"])[0])
+            self._send_json(200, {"ok": True, "history": self._history_from_ladybug(limit)})
         elif path == "/api/health":
             self._send_json(200, {"ok": True, "uptime_s": int(time.time() - self.app.started_at)})
         else:
@@ -286,6 +326,42 @@ class AdminHandler(BaseHTTPRequestHandler):
             out["chatterbot"] = {"error": str(e)[:200]}
         return out
 
+    def _history_from_ladybug(self, limit: int = 20) -> list:
+        """Historique récent des échanges depuis la mémoire tenace LadybugDB
+        (base utilisateur <lang>_user.lbdb, alimentée à chaque échange)."""
+        def _fmt_ts(value):
+            if value is None:
+                return ""
+            if hasattr(value, "isoformat"):
+                return value.isoformat()
+            return str(value)
+
+        try:
+            from mycroft.lora.chatterbot_ladybug import ladybug_chatter_from_config
+            chatter = ladybug_chatter_from_config(self.app.config.config, self.app.base_dir)
+            if chatter is None:
+                return []
+            statements = chatter.user.filter(order_by=["created_at"], page_size=max(int(limit), 1))
+            history = [
+                {
+                    "question": st.in_response_to or "",
+                    "response": st.text,
+                    "timestamp": _fmt_ts(st.created_at),
+                    "source": "ladybug",
+                }
+                for st in statements
+                if st.in_response_to
+            ]
+            history.sort(key=lambda h: h["timestamp"] or "", reverse=True)
+            try:
+                chatter.close()
+            except Exception:
+                pass
+            return history
+        except Exception as e:
+            logger.debug("historique ladybug: %s", e)
+            return []
+
     def _diagnostic(self) -> dict:
         ai_status = self._ai_status()
         return {
@@ -296,6 +372,7 @@ class AdminHandler(BaseHTTPRequestHandler):
             "languages": self.app.config.config.get("languages", []),
             "ai_enabled": bool(self.app.ai),
             "ai_providers": ai_status,
+            "pipeline_enabled": self.app.with_pipeline or self.app.pipeline is not None,
             "pipeline_attached": self.app.pipeline is not None,
         }
 
@@ -303,10 +380,17 @@ class AdminHandler(BaseHTTPRequestHandler):
         text = (text or "").strip()
         if not text:
             return {"text": "", "source": "empty"}
-        if self.app.pipeline is not None:
+        # Pipeline complet (IntentMatcher + LadybugChatter + AI backends) —
+        # construit paresseusement. L'apprentissage LadybugDB est fait dans
+        # IntentMatcher.match() (distillation).
+        pipeline = self.app.get_pipeline()
+        if pipeline is not None:
             try:
-                result = self.app.pipeline.process(text)
-                return {"text": result.get("response", ""), "source": "pipeline"}
+                result = pipeline.process(text)
+                intent = result.get("intent") or {}
+                source = intent.get("source", "pipeline") if isinstance(intent, dict) else "pipeline"
+                return {"text": result.get("response", ""), "source": source,
+                        "intent": intent.get("intent") if isinstance(intent, dict) else None}
             except Exception as e:
                 logger.debug("chat pipeline: %s", e)
         if self.app.ai is not None:
@@ -345,6 +429,7 @@ class AdminServer:
     def stop(self) -> None:
         self.httpd.shutdown()
         self.httpd.server_close()
+        self.app.close_pipeline()
 
 
 def main() -> None:
@@ -356,9 +441,11 @@ def main() -> None:
     parser.add_argument("--base-dir", required=True, help="Dossier contenant phoenix_config.json")
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--host", default=None)
+    parser.add_argument("--with-pipeline", action="store_true",
+                        help="Construire le pipeline Phoenix embarqué (chat complet, paresseux)")
     args = parser.parse_args()
 
-    app = AdminApp(args.base_dir)
+    app = AdminApp(args.base_dir, with_pipeline=args.with_pipeline)
     if args.port is not None:
         app.config.set("web", {**app.config.get("web"), "port": args.port})
     if args.host is not None:
