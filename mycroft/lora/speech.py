@@ -36,6 +36,7 @@ Config (phoenix_config.json) ::
     }
 """
 
+import importlib.util
 import json
 import logging
 import os
@@ -120,25 +121,77 @@ class KokoroTTS(TTSBackend):
     type = "kokoro"
     description = "Kokoro TTS (ONNX, temps réel sur CPU)"
 
+    # Kokoro utilise les codes espeak complets (fr-fr, en-us…) ; les codes
+    # courts (fr, en) tomberaient sur des voix mbrola qui demandent mbrola.dll.
+    _KOKORO_LANG = {
+        "fr": "fr-fr", "en": "en-us", "es": "es-es", "de": "de-de",
+        "it": "it-it", "pt": "pt-br", "ja": "ja", "ko": "ko", "zh": "zh-cmn",
+    }
+
+    # Chemins d'installation classiques d'espeak-ng (toutes langues) — sinon
+    # on retombe sur le bundle partiel d'espeakng_loader (qui manque certaines
+    # langues comme le fr). espeak-ng est GPL : on NE l'embarque pas, on le
+    # détecte s'il est installé sur la machine.
+    _ESPEAK_DIRS = [
+        os.path.join(os.environ.get("ProgramFiles", r"C:\Program Files"), "eSpeak NG"),
+        os.path.join(os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"), "eSpeak NG"),
+    ]
+
     def __init__(self, cfg: dict):
         super().__init__(cfg)
         self.model_path = cfg.get("model_path") or "kokoro-v1.0.onnx"
         self.voices_path = cfg.get("voices_path") or "voices-v1.0.bin"
         self.voice = cfg.get("voice") or "af_heart"  # voix du modèle
         self.speed = float(cfg.get("speed", 1.0))
+        self.language = self._KOKORO_LANG.get(self.language, self.language)
         if not cfg.get("sample_rate"):
             self.sample_rate = 24000
 
+    @classmethod
+    def _find_espeak(cls) -> Optional[tuple]:
+        """Retourne (lib_path, data_path) du meilleur espeak-ng trouvé."""
+        # 1) config explicite
+        lib = os.environ.get("PHONEMIZER_ESPEAK_LIBRARY")
+        data = None
+        # 2) installation système complète (toutes langues)
+        for d in cls._ESPEAK_DIRS:
+            for libname in ("espeak-ng.dll", "libespeak-ng.dll"):
+                candidate = os.path.join(d, libname)
+                if os.path.exists(candidate):
+                    lib = candidate
+                    data = os.path.join(d, "espeak-ng-data")
+                    break
+            if lib and data:
+                break
+        # 3) bundle paresseux espeakng_loader
+        if not lib or not data:
+            try:
+                import espeakng_loader
+                lib = lib or espeakng_loader.get_library_path()
+                data = data or espeakng_loader.get_data_path()
+            except Exception:
+                pass
+        if lib and data and os.path.exists(lib) and os.path.exists(data):
+            return lib, data
+        return None
+
     def health(self) -> bool:
-        for mod in ("onnxruntime", "kokoro_onnx"):
-            if __import__("importlib").util.find_spec(mod) is None:
-                return False
-        return os.path.exists(self.model_path) and os.path.exists(self.voices_path)
+        if importlib.util.find_spec("onnxruntime") is None or importlib.util.find_spec("kokoro_onnx") is None:
+            return False
+        if not (os.path.exists(self.model_path) and os.path.exists(self.voices_path)):
+            return False
+        return self._find_espeak() is not None
 
     def synthesize(self, text: str) -> Iterable[bytes]:
         from kokoro_onnx import Kokoro
 
-        kokoro = Kokoro(self.model_path, self.voices_path)
+        espeak = self._find_espeak()
+        espeak_config = None
+        if espeak:
+            from kokoro_onnx.config import EspeakConfig
+            espeak_config = EspeakConfig(lib_path=espeak[0], data_path=espeak[1])
+
+        kokoro = Kokoro(self.model_path, self.voices_path, espeak_config=espeak_config)
         samples, _ = kokoro.create(
             text, voice=self.voice, speed=self.speed, lang=self.language
         )
@@ -234,7 +287,7 @@ class VoskSTT(STTBackend):
         self.model = None  # chargé paresseusement
 
     def health(self) -> bool:
-        if __import__("importlib").util.find_spec("vosk") is None:
+        if importlib.util.find_spec("vosk") is None:
             return False
         return bool(self.model_path) and os.path.exists(self.model_path)
 
@@ -272,7 +325,7 @@ class WhisperSTT(STTBackend):
         self._model = None
 
     def health(self) -> bool:
-        return __import__("importlib").util.find_spec("faster_whisper") is not None
+        return importlib.util.find_spec("faster_whisper") is not None
 
     def _get_model(self):
         if self._model is None:

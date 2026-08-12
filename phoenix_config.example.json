@@ -38,7 +38,7 @@
     "voice_path": "PIPER_VOICE_PATH",
     "piper_path": "PIPER_BIN_PATH",
     "sample_rate": 22050,
-    "description": "Synthese vocale. Moteurs: piper (leger, Pi), kokoro (ONNX, temps reel sur CPU desktop), pico (pico2wave ultra leger), dummy (tests). Exemple kokoro: { \"engine\": \"kokoro\", \"model_path\": \"kokoro-v1.0.onnx\", \"voices_path\": \"voices-v1.0.bin\", \"voice\": \"af_heart\", \"language\": \"fr\" }"
+    "description": "Synthese vocale. Moteurs: piper (leger, Pi), kokoro (ONNX, temps reel sur CPU desktop), pico (pico2wave ultra leger), dummy (tests). Exemple kokoro: { \"engine\": \"kokoro\", \"model_path\": \"kokoro-v1.0.onnx\", \"voices_path\": \"voices-v1.0.bin\", \"voice\": \"ff_siwis\", \"language\": \"fr-fr\" } (kokoro exige les codes espeak complets fr-fr/en-us)"
   },
   "memory": {
     "kuzu_graph": "phoenix",

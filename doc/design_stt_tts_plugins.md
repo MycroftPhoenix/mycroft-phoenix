@@ -37,8 +37,8 @@ Contrat commun à tous les moteurs :
 `phoenix_config.json`, sections `stt` et `tts` (clé `engine` = nom du connecteur) :
 
 ```json
-"tts": { "engine": "kokoro", "language": "fr", "voice": "af_heart",
-         "model_path": "kokoro-v1.0.onnx", "voices_path": "voices-v1.0.bin" },
+"tts": { "engine": "kokoro", "language": "fr-fr", "voice": "ff_siwis",
+         "model_path": ".../kokoro-v1.0.onnx", "voices_path": ".../voices-v1.0.bin" },
 "stt": { "engine": "vosk", "language": "fr",
          "model_path": "vosk-model-small-fr-0.22" }
 ```
@@ -115,11 +115,17 @@ C'est tout : le web, le pipeline et `/ws/voice` l'utilisent sans modification.
 
 ```powershell
 pip install kokoro-onnx onnxruntime soundfile
-# modèles depuis Hugging Face (hexgrad/Kokoro-82M) :
+# modèles depuis la release model-files-v1.0 de thewh1teagle/kokoro-onnx :
 #   kokoro-v1.0.onnx  et  voices-v1.0.bin  → à côté du config, puis :
 "tts": { "engine": "kokoro", "model_path": ".../kokoro-v1.0.onnx",
-         "voices_path": ".../voices-v1.0.bin", "voice": "af_heart", "language": "fr" }
+         "voices_path": ".../voices-v1.0.bin", "voice": "ff_siwis", "language": "fr-fr" }
 ```
+
+> ⚠️ Kokoro exige les **codes espeak complets** (`fr-fr`, `en-us`…) : `fr` seul
+> tomberait sur une voix mbrola qui demande `mbrola.dll`. Il faut aussi un
+> **espeak-ng complet** (installateur officiel) pour la phonétisation — le
+> connecteur le détecte automatiquement sous `C:\Program Files\eSpeak NG`.
+> espeak-ng est GPL : on ne l'embarque pas, on le signale comme dépendance.
 
 Test rapide (sans carte son) : le moteur doit répondre `healthy: true` au
 `/api/config/ai/test` (ou `status()` directement).
