@@ -440,6 +440,12 @@ def show_module(db_path: str, name: str):
 
 
 def main():
+    # Sortie console en UTF-8 (sinon UnicodeEncodeError cp1252 sur les '→' des docs)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
     # Chemins résolus ABSOLUMENT depuis la position du script, afin de fonctionner
     # depuis n'importe quel répertoire courant (sans faire 'cd' dans le repo).
     repo_root = Path(__file__).resolve().parent.parent
