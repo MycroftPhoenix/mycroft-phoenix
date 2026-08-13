@@ -18,7 +18,7 @@ Sémantique (fidèle à Tracery de Kate Compton) :
 
 Usage::
 
-    from mycroft.lora.tracery import Tracery
+    from mycroft.capabilities.tracery import Tracery
     g = {"origin": ["#salut# #nom#"], "salut": ["Salut", "Bonjour"], "nom": ["Steve"]}
     print(Tracery(g).expand("origin"))
 """

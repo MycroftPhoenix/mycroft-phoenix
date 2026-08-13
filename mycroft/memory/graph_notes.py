@@ -7,9 +7,9 @@ tests, décisions, apprentissages). LadybugDB = mémoire tenace du core.
 
 CLI::
 
-    python -m mycroft.lora.graph_notes record "contenu" \\
+    python -m mycroft.memory record "contenu" \\
         [--category dev] [--tags opencode,backend] [--base-dir <dir>]
-    python -m mycroft.lora.graph_notes list [--limit 20] [--base-dir <dir>]
+    python -m mycroft.memory list [--limit 20] [--base-dir <dir>]
 
 ``base-dir`` par défaut = répertoire courant (là où Phoenix écrit ses bases).
 """
@@ -30,7 +30,7 @@ def _notes_path(base_dir: Optional[str] = None) -> Path:
 
 
 def _open_notes(base_dir: Optional[str] = None):
-    from mycroft.lora.chatterbot_ladybug import LadybugStorageAdapter
+    from mycroft.memory.chatterbot_ladybug import LadybugStorageAdapter
 
     path = _notes_path(base_dir)
     return LadybugStorageAdapter(db_path=path, read_only=False)

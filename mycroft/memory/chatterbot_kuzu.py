@@ -57,7 +57,7 @@ class IntentMatcher:
         
     def initialize(self):
         """Initialise IntentEngine et charge les intents depuis Kuzu."""
-        from mycroft.lora.intent_engine import IntentEngine
+        from mycroft.capabilities.intent_engine import IntentEngine
 
         self._engine = IntentEngine(db_path=self.db_path)
 

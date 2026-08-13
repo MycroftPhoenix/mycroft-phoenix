@@ -314,7 +314,7 @@ class AdminHandler(BaseHTTPRequestHandler):
     def _memory_info(self) -> dict:
         out = {}
         try:
-            from mycroft.lora.chatterbot_ladybug import ladybug_chatter_from_config
+            from mycroft.memory.chatterbot_ladybug import ladybug_chatter_from_config
             chatter = ladybug_chatter_from_config(self.app.config.config, self.app.base_dir)
             if chatter is not None:
                 out["chatterbot"] = chatter.status()
@@ -337,7 +337,7 @@ class AdminHandler(BaseHTTPRequestHandler):
             return str(value)
 
         try:
-            from mycroft.lora.chatterbot_ladybug import ladybug_chatter_from_config
+            from mycroft.memory.chatterbot_ladybug import ladybug_chatter_from_config
             chatter = ladybug_chatter_from_config(self.app.config.config, self.app.base_dir)
             if chatter is None:
                 return []

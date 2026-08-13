@@ -46,10 +46,10 @@ Goals:
 | # | Module (pip package) | Content | Replaceable by |
 |---|----------------------|---------|-----------------|
 | 1 | **`mycroft-phoenix-hub`** | `mycroft/hub/`, `mycroft/messagebus/` | any bus (MQTT, websocket, zmq) |
-| 2 | **`mycroft-phoenix-brain`** | `mycroft/pipeline.py` + `mycroft/lora/` | remote LLM, MCP brain |
+| 2 | **`mycroft-phoenix-brain`** | `mycroft/pipeline.py` + `mycroft/capabilities/` | remote LLM, MCP brain |
 | 3 | **`mycroft-phoenix-audio`** | `mycroft/audio/`, `mycroft/stt/`, `mycroft/tts/`, `mycroft/setup_audio.py` | any STT/TTS |
 | 4 | **`mycroft-phoenix-skills`** | `mycroft/skills/` | plugin system (dynamic loading) |
-| 5 | **`mycroft-phoenix-memory`** | `mycroft/lora/kuzu_*.py` + `*.kuzu` databases | SQLite, other graph |
+| 5 | **`mycroft-phoenix-memory`** | `mycroft/memory/kuzu_*.py` + `*.kuzu` databases | SQLite, other graph |
 | 6 | **`mycroft-phoenix-client`** | `mycroft/client/text/chat.py`, `mycroft/client/speech/` | lightweight client (Raspberry Pi) |
 | 7 | **`mycroft-phoenix-mcp`** | MCP node (phase 1 of `design_mcp_hub.md`) | any AI |
 
@@ -83,8 +83,8 @@ The brain: NER pipeline → intent → LLM → response.
 dependencies = [
     "kuzu>=0.7",                    # memory (via mycroft-phoenix-memory)
     "requests>=2.28",               # Ollama / OpenAI API calls
-    "beautifulsoup4>=4.12",         # scraping (lora/research.py)
-    "duckduckgo_search>=7.0",       # search (lora/research.py)
+    "beautifulsoup4>=4.12",         # scraping (capabilities/research.py)
+    "duckduckgo_search>=7.0",       # search (capabilities/research.py)
     "langdetect>=1.0",              # language detection (pipeline)
     "scikit-learn>=1.2",            # embeddings / similarity
     "numpy>=1.24",
@@ -132,7 +132,8 @@ dependencies = [
 ]
 ```
 No dependency on the rest of Mycroft-Phoenix. Reusable by other projects
-(like the current `mycroft-lora`, to be renamed `mycroft-phoenix-memory`).
+(like the current `mycroft-lora` fine-tuning package, while the memory moved to
+`mycroft/memory/`, to be renamed `mycroft-phoenix-memory`).
 
 ### 3.6 `mycroft-phoenix-client`
 Text and voice clients.
@@ -199,10 +200,10 @@ Each module lives in `packages/mycroft-phoenix-<module>/` with its own
 ```
 packages/
 ├── mycroft-phoenix-hub/       pyproject.toml + mycroft/hub, mycroft/messagebus
-├── mycroft-phoenix-brain/     pyproject.toml + mycroft/pipeline.py, mycroft/lora/*
+├── mycroft-phoenix-brain/     pyproject.toml + mycroft/pipeline.py, mycroft/capabilities/*
 ├── mycroft-phoenix-audio/     pyproject.toml + mycroft/audio, mycroft/stt, mycroft/tts
 ├── mycroft-phoenix-skills/    pyproject.toml + mycroft/skills
-├── mycroft-phoenix-memory/    pyproject.toml + mycroft/lora/kuzu_*
+├── mycroft-phoenix-memory/    pyproject.toml + mycroft/memory/kuzu_*
 ├── mycroft-phoenix-client/    pyproject.toml + mycroft/client
 ├── mycroft-phoenix-mcp/       pyproject.toml + mycroft/mcp
 ```
@@ -250,7 +251,7 @@ Findings from the analysis (2026-08-05):
    `mycroft.enclosure.api`, `mycroft.util.*`. → isolate them in a
    `mycroft-phoenix-core` layer (configuration + util) or lift them into each
    module.
-2. **`mycroft/pipeline.py`** directly imports `mycroft.lora.*` and
+2. **`mycroft/pipeline.py`** directly imports `mycroft.capabilities.*` and
    `mycroft.graph_hardware` → the brain must expose the `Pipeline.process()`
    interface and keep the rest internal.
 3. **`mycroft/audio/voice_loop.py`** imports `pipeline`, `messagebus`,

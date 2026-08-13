@@ -72,7 +72,7 @@
     "corpora": ["chatterbot", "mycroft"],
     "description": "Corpus conversationnels (ChatterBot + Mycroft) stockes dans LadybugDB: data/chatterbot/<lang>_corpus.lbdb (verrouillee) + <lang>_user.lbdb (apprentissage)",
     "install_command": "pip install chatterbot==1.2.14 chatterbot-corpus-py real_ladybug pyyaml click",
-    "import_command": "python -m mycroft.lora.mycroft_corpus import --lang fr --skills <dossier_skills_mycroft> --data-dir data --chatterbot-corpus"
+    "import_command": "python -m mycroft.knowledge import --lang fr --skills <dossier_skills_mycroft> --data-dir data --chatterbot-corpus"
   },
   "ai": {
     "enabled": true,

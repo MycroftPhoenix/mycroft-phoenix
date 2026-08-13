@@ -17,9 +17,9 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 # Import direct
-from mycroft.lora.temporal_scorer import TemporalScorer
-from mycroft.lora.locate_resources import CrisisLocator
-from mycroft.lora.crisis_detector import CrisisDetector
+from mycroft.capabilities.temporal_scorer import TemporalScorer
+from mycroft.capabilities.locate_resources import CrisisLocator
+from mycroft.capabilities.crisis_detector import CrisisDetector
 
 
 def test_temporal_scorer():

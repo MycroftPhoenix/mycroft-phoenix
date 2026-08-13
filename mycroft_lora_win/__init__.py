@@ -3,7 +3,7 @@
 Successeur *local et privé* de l'assistant que Cortana était : exploite la
 couche vocale/shell de Windows (SAPI) sans aucune dépendance serveur Microsoft.
 
-Backends prêts à brancher dans ``mycroft.lora.speech`` via :func:`register`.
+Backends prêts à brancher dans ``mycroft.capabilities`` via :func:`register`.
 """
 
 from ._ps import list_voices

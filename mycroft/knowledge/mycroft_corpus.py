@@ -15,7 +15,7 @@ Cibles (toujours LadybugDB) :
   base verrouillée read-only au runtime).
 
 Usage :
-    python -m mycroft.lora.mycroft_corpus import \
+    python -m mycroft.knowledge import \
         --lang fr --skills <dossier_skills> --data-dir <data> \
         [--core-res-text <mycroft-core/mycroft/res/text>] [--chatterbot-corpus]
 """
@@ -159,7 +159,7 @@ def import_mycroft_skills(
 
     corpus = None
     if corpus_db is not None:
-        from mycroft.lora.chatterbot_ladybug import LadybugStorageAdapter
+        from mycroft.memory.chatterbot_ladybug import LadybugStorageAdapter
         corpus = LadybugStorageAdapter(db_path=corpus_db, read_only=False)
 
     stats = {"skills": 0, "intents": 0, "utterances": 0, "dialog_lines": 0, "pairs": 0}
@@ -233,8 +233,8 @@ def import_mycroft_skills(
 
 
 def import_core_res_text(res_text_root: Path, lang: str, corpus_db: Path) -> int:
-    """Importe les dialogs système de mycroft-core (res/text/<lang>)."""
-    from mycroft.lora.chatterbot_ladybug import LadybugStorageAdapter
+    """Importe les dialogs syst��me de mycroft-core (res/text/<lang>)."""
+    from mycroft.memory.chatterbot_ladybug import LadybugStorageAdapter
 
     lang_code = LANG_MAP.get(lang, lang)
     lang_dir = Path(res_text_root) / lang_code
@@ -269,7 +269,7 @@ def import_chatterbot_corpus(lang: str, corpus_db: Path, name: str = "Phoenix") 
 
     Nécessite chatterbot + chatterbot-corpus (shim chatterbot_corpus).
     """
-    from mycroft.lora.chatterbot_ladybug import LadybugStorageAdapter
+    from mycroft.memory.chatterbot_ladybug import LadybugStorageAdapter
 
     try:
         from chatterbot import ChatBot
@@ -287,7 +287,7 @@ def import_chatterbot_corpus(lang: str, corpus_db: Path, name: str = "Phoenix") 
 
     bot = ChatBot(
         name,
-        storage_adapter="mycroft.lora.chatterbot_ladybug.LadybugStorageAdapter",
+        storage_adapter="mycroft.memory.LadybugStorageAdapter",
         db_path=str(corpus_db),
         read_only=False,
         logic_adapters=["chatterbot.logic.BestMatch"],
@@ -302,7 +302,7 @@ def import_chatterbot_corpus(lang: str, corpus_db: Path, name: str = "Phoenix") 
 
 
 def main(argv: Optional[List[str]] = None) -> int:
-    parser = argparse.ArgumentParser(prog="mycroft.lora.mycroft_corpus")
+    parser = argparse.ArgumentParser(prog="mycroft.knowledge")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     p = sub.add_parser("import", help="Importe les corpus dans LadybugDB")

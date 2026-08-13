@@ -13,9 +13,8 @@ Redirige TOUJOURS vers les ressources existantes.
 
 import logging
 from typing import Dict, Optional, List
-
-from mycroft.lora.temporal_scorer import TemporalScorer
-from mycroft.lora.locate_resources import CrisisLocator
+from mycroft.capabilities.temporal_scorer import TemporalScorer
+from mycroft.capabilities.locate_resources import CrisisLocator
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +80,7 @@ class CrisisDetector:
 
         if self.use_llm:
             try:
-                from .llm_guardrail import LLMGuardrail
+                from mycroft.lora.llm_guardrail import LLMGuardrail
                 self._llm = LLMGuardrail()
                 self._llm.initialize()
                 if self._llm.is_available:

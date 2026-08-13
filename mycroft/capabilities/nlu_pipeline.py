@@ -68,7 +68,7 @@ class NLUPipeline:
             
         # 2. LoRA Adapter Manager
         try:
-            from .adapter_manager import AdapterManager
+            from mycroft.lora.adapter_manager import AdapterManager
             self._adapter_manager = AdapterManager(self.config.lora_adapters_dir)
             self._adapter_manager.scan_adapters()
             logger.info(f"LoRA: {len(self._adapter_manager._registry)} adaptateurs trouvés")
@@ -209,7 +209,7 @@ class NLUPipeline:
         Returns:
             Chemin vers l'adaptateur sauvegardé
         """
-        from .trainer import LoRATrainer
+        from mycroft.lora.trainer import LoRATrainer
         
         trainer = LoRATrainer()
         trainer.add_intent(intent_name, utterances)

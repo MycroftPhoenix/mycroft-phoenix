@@ -45,8 +45,7 @@ if _mcp_config_py.exists():
         mcp_config.apply_phoenix_env()
     except Exception:
         pass
-
-from mycroft.lora.kuzu_resilience import (
+from mycroft.memory.kuzu_resilience import (
     WriteQueue, KuzuWorker, restore_all_from_latest_snapshot,
     BASE_DIR, SNAPSHOT_DIR, DB_NAMES,
 )

@@ -284,7 +284,7 @@ def step_init_kuzu(python_path: Optional[str] = None):
         [interpreter, "-c", """
 import sys; sys.path.insert(0, r"{}")
 try:
-    from mycroft.lora.kuzu_manager import KuzuManager
+from mycroft.memory.kuzu_manager import KuzuManager
     from mycroft.util.data_dirs import get_data_dir
     mgr = KuzuManager(get_data_dir())
     mgr.initialize()

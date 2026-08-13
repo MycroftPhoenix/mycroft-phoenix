@@ -11,9 +11,9 @@ via actions ``[cle:valeur]`` partagées).
 
 Exemples ::
 
-    python -m mycroft.lora.tracery_gen generate --grammar variation --count 5
-    python -m mycroft.lora.tracery_gen generate --grammar histoire --count 2
-    python -m mycroft.lora.tracery_gen train --grammar entrainement --count 200 --base-dir .
+    python -m mycroft.capabilities generate --grammar variation --count 5
+    python -m mycroft.capabilities generate --grammar histoire --count 2
+    python -m mycroft.capabilities train --grammar entrainement --count 200 --base-dir .
 """
 
 import argparse
@@ -38,7 +38,7 @@ def load_grammar(name_or_path: str, base_dir: Optional[str] = None) -> dict:
 
 def generate(grammar: dict, symbol: str = "origin", count: int = 1,
              seed: Optional[int] = None) -> List[str]:
-    from mycroft.lora.tracery import Tracery
+    from mycroft.capabilities.tracery import Tracery
 
     rng = random.Random(seed)
     return [Tracery(grammar, rng=rng).expand(symbol).strip()
@@ -48,8 +48,9 @@ def generate(grammar: dict, symbol: str = "origin", count: int = 1,
 def train(grammar: dict, count: int = 200, base_dir: Optional[str] = None,
           lang: str = "fr", seed: Optional[int] = None) -> tuple:
     """Génère des paires (user, bot) cohérentes et les apprend à LadybugDB."""
-    from mycroft.lora.chatterbot_ladybug import LadybugStorageAdapter, normalize
-    from mycroft.lora.tracery import Tracery
+    from mycroft.memory.chatterbot_ladybug import LadybugStorageAdapter
+    from mycroft.memory.chatterbot_ladybug import normalize
+    from mycroft.capabilities.tracery import Tracery
 
     base = Path(base_dir or os.getcwd())
     path = base / "data" / "chatterbot" / f"{lang}_user.lbdb"

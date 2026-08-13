@@ -205,11 +205,12 @@ class PhoenixPipeline:
             logger.debug("Detection materiel: %s", e)
 
         # 0b. WriteQueue partagée (le serveur MCP est l'unique writer quand il tourne)
-        from mycroft.lora.kuzu_resilience import WriteQueue, KuzuWorker
+        from mycroft.memory.kuzu_resilience import WriteQueue
+        from mycroft.memory.kuzu_resilience import KuzuWorker
         self.write_queue = WriteQueue()
 
         # 1. KuzuManager (triple DB: system + personal + research)
-        from mycroft.lora.kuzu_manager import KuzuManager
+        from mycroft.memory.kuzu_manager import KuzuManager
 
         # Si le serveur MCP single-writer est actif, ne PAS créer de worker local :
         # il détiendrait les locks exclusifs des bases et entrerait en conflit avec
@@ -237,7 +238,7 @@ class PhoenixPipeline:
             self.kuzu_manager.research_conn = None
 
         # 1b. KuzuResearch (tampon recherche web)
-        from mycroft.lora.kuzu_research import KuzuResearch
+        from mycroft.memory.kuzu_research import KuzuResearch
         self.kuzu_research = KuzuResearch(self.kuzu_manager)
 
         # 1c. Web research module (import tardif dans research())
@@ -245,11 +246,11 @@ class PhoenixPipeline:
 
         # 2. IntentMatcher (IntentEngine + Kuzu system) avec fallback
         #    conversationnel LadybugDB (chatterbot section config, si activé)
-        from mycroft.lora.chatterbot_kuzu import IntentMatcher
+        from mycroft.memory.chatterbot_kuzu import IntentMatcher
 
         chatter = None
         try:
-            from mycroft.lora.chatterbot_ladybug import ladybug_chatter_from_config
+            from mycroft.memory.chatterbot_ladybug import ladybug_chatter_from_config
             chatter = ladybug_chatter_from_config(self.config, self.base_dir)
         except Exception as e:
             logger.debug("LadybugChatter non initialisé: %s", e)
@@ -807,8 +808,7 @@ class PhoenixPipeline:
         """
         if not self.kuzu_research:
             return {"ok": False, "error": "KuzuResearch non initialise"}
-
-        from mycroft.lora.research import search_and_scrape
+        from mycroft.capabilities.research import search_and_scrape
         chunks = search_and_scrape(query, max_results=max_results)
         if not chunks:
             return {"ok": False, "error": "Aucun resultat", "query": query}
