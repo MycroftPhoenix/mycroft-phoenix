@@ -736,10 +736,13 @@ class VoiceLoop:
 def main():
     import argparse
 
-    # Sortie console en UTF-8 (sinon UnicodeEncodeError cp1252 sur les '→' etc.)
+    # Sortie console en UTF-8 + line-buffering (sinon UnicodeEncodeError cp1252
+    # sur les '→' etc., ET les print() des threads restent coinces dans le
+    # buffer bloc quand stdout est redirige/pipe -- invisibles jusqu'a ce que
+    # le buffer se remplisse ou que le process se termine).
     for stream in (sys.stdout, sys.stderr):
         try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
+            stream.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
         except Exception:
             pass
 
