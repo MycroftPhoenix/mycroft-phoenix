@@ -14,14 +14,14 @@ from typing import Optional, Dict, Any, List
 import importlib.util
 
 # Import base sans passer par mycroft.tts.__init__
-_base_spec = importlib.util.spec_from_file_location("base", r"E:\opencode\assistant_locale-Mycroft-phoenix\mycroft\tts\base.py")
+_base_spec = importlib.util.spec_from_file_location("base", r"D:\mycroft-phoenix\mycroft\tts\base.py")
 _base = importlib.util.module_from_spec(_base_spec)
 _base_spec.loader.exec_module(_base)
 TTSBackend = _base.TTSBackend
 TTSFactory = _base.TTSFactory
 
 # Import PiperTTS original sans passer par mycroft.tts.__init__
-_piper_spec = importlib.util.spec_from_file_location("piper_orig", r"E:\opencode\assistant_locale-Mycroft-phoenix\mycroft\tts\piper_tts.py")
+_piper_spec = importlib.util.spec_from_file_location("piper_orig", r"D:\mycroft-phoenix\mycroft\tts\piper_tts.py")
 _piper = importlib.util.module_from_spec(_piper_spec)
 _piper_spec.loader.exec_module(_piper)
 PiperOriginal = _piper.PiperTTS

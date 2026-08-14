@@ -735,7 +735,14 @@ class VoiceLoop:
 
 def main():
     import argparse
-    
+
+    # Sortie console en UTF-8 (sinon UnicodeEncodeError cp1252 sur les '→' etc.)
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
     parser = argparse.ArgumentParser(description="Phoenix Voice Loop")
     parser.add_argument("--vosk-model", help="Chemin vers le modèle Vosk")
     parser.add_argument("--piper-voice", default="fr_FR-siwis-medium", help="Voix Piper")

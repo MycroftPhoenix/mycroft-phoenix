@@ -1,7 +1,7 @@
 @echo off
 setlocal
 set PYTHON=C:\ProgramData\miniforge3\python.exe
-set APP=E:\opencode\assistant_locale-Mycroft-phoenix
+set APP=D:\mycroft-phoenix
 set SCRIPT=%APP%\mycroft\audio\voice_loop.py
 
 cd /d "%APP%"

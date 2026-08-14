@@ -13,7 +13,7 @@ import wave
 from typing import Optional, Dict, Any, List
 
 import importlib.util
-_base_spec = importlib.util.spec_from_file_location("base", r"E:\opencode\assistant_locale-Mycroft-phoenix\mycroft\tts\base.py")
+_base_spec = importlib.util.spec_from_file_location("base", r"D:\mycroft-phoenix\mycroft\tts\base.py")
 _base = importlib.util.module_from_spec(_base_spec)
 _base_spec.loader.exec_module(_base)
 TTSBackend = _base.TTSBackend
