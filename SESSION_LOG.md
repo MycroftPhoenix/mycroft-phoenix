@@ -97,3 +97,79 @@ Avant de relancer, verifier qu'aucun vieux process n'occupe deja le port 8181:
 netstat -ano | findstr :8181
 wmic process where "ProcessId=X" get CommandLine
 ```
+
+## 2026-08-14 (suite) — Migration Kuzu -> LadybugDB + roadmap panneau config
+
+### Migration Kuzu -> LadybugDB (demande explicite Steve)
+**IMPORTANT — a savoir**: le vrai package `kuzu` fonctionne parfaitement sur cette
+machine (teste directement: creation DB + table = OK). Le "Base introuvable" qu'on
+voyait AVANT la migration etait uniquement du aux fichiers .kuzu absents (migration
+E:\ -> D:\, jamais crees ici) — PAS un bug de la librairie kuzu elle-meme.
+La migration vers LadybugDB est donc un choix architectural (Steve l'a demande),
+PAS un correctif d'un bug. Les deux options auraient regle le probleme des bases
+manquantes.
+
+**Fait**:
+- `mycroft/memory/kuzu_manager.py`: `import kuzu` -> `import real_ladybug as kuzu`
+- `mycroft/memory/kuzu_resilience.py`: meme swap (2 endroits: `_DBHandle.__init__`,
+  `restore_from_latest_snapshot`)
+- API confirmee compatible (teste isolement): `Database(path)`, `Connection(db)`,
+  `conn.execute(cypher, params_dict_positionnel)` — fonctionne identique a l'API kuzu.
+- Teste: `KuzuManager()._init_personal()` cree `phoenix_personal.kuzu` (format
+  real_ladybug) avec succes.
+- `phoenix.kuzu` (systeme) reste "introuvable" — comportement ATTENDU, le code
+  n'auto-cree jamais la base systeme (elle doit etre pre-peuplee avec des intents,
+  voir plus bas "reste a faire"). Ce n'est pas une regression.
+
+**PAS touche (decision Steve du 2026-08-14)**: `mycroft/memory/story_db.py` —
+utilise encore le vrai `kuzu`, gere `phoenix_stories.kuzu` (1.1 Mo, donnees reelles
+existantes a `C:\Users\Administrateur\AppData\Roaming\phoenix\phoenix_stories.kuzu`).
+Fonctionne deja, pas prioritaire. A migrer plus tard si on veut la coherence complete
+(mais attention: real_ladybug et kuzu reel n'ont PAS ete testes pour compatibilite
+de FORMAT de fichier — un fichier cree par l'un n'est pas forcement lisible par
+l'autre. A verifier avant de migrer story_db.py si jamais).
+
+### Etat operationnel confirme (2026-08-14, apres migration Ladybug)
+Redemarrage complet teste: Vosk + wake word + Piper TTS + Web UI (LAN) + Pipeline
++ skill date_time — tout fonctionne, aucune regression. Le seul "degrade" reste
+le meme qu'avant: intents JSON au lieu de Kuzu/Ladybug system DB (phoenix.kuzu
+jamais peuplee). **Phoenix est operationnel pour usage de base.**
+
+### Reste a faire (priorite Steve: system DB avant panneau config)
+- Peupler `phoenix.kuzu`/`.lbdb` systeme avec les intents (voir session precedente:
+  necessite `D:\mycroft-phoenix-skills`, pas de script d'import tout fait trouve
+  encore — `mycroft/knowledge/` ne contient que `mycroft_corpus.py` +
+  `mental_health_dataset.json`, pas de CLI d'import. A creer ou trouver.)
+
+---
+
+## IDEE FUTURE (roadmap, PAS urgent) — Panneau de configuration complet
+
+Steve (non-programmeur, "taponer des scripts pour changer la config me fait chier")
+demande un panneau web tout-en-un pour configurer Phoenix sans toucher au JSON a la
+main. Proposition (a construire sur `mycroft/web/server.py`, deja existant):
+
+**Fonctionnalites demandees**:
+1. Audio: detection auto des peripheriques entree/sortie disponibles (deja fait en
+   partie via `voice_loop.py --autodetect`/`--diagnostic`, juste pas expose en UI)
+2. TTS/STT: afficher le moteur actif, permettre de changer (Piper/Supertonic pour
+   TTS; Vosk pour STT eventuellement d'autres)
+3. Sauvegarde de la config courante + rollback facile ("sans mal de tete") si un
+   changement casse quelque chose
+4. Telechargement + configuration automatique des modules necessaires (ex: modele
+   Piper/Vosk manquant -> le panneau propose de le telecharger)
+5. Assistance IA optionnelle pour guider la config (dependant si un LLM est
+   disponible/configure)
+6. Comptes utilisateurs multiples avec login/mot de passe propre a chacun (pas
+   juste le seul compte mycroft/phoenix actuel)
+7. Changer le wake word, avec une liste de mots recommandes + possibilite d'en
+   essayer un invente par l'utilisateur
+
+**Idee additionnelle (Claude, 2026-08-14)**: mode "tester avant d'appliquer" —
+avant de sauvegarder un changement TTS/wake word, le tester en direct (synthese
+d'un phrase test, ou 5 sec d'ecoute) pour eviter de sauvegarder-redemarrer-decouvrir
+que ca marche pas.
+
+**A eclaircir avant de commencer**: priorite relative vs le reste du backlog
+(system DB intents en premier, selon Steve 2026-08-14). Autres parametres oublies
+possibles a lister avec Steve avant de commencer le design.

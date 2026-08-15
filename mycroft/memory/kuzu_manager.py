@@ -13,7 +13,7 @@ Les bases sont stockées dans le répertoire utilisateur (~/.local/share/phoenix
 %APPDATA%/Phoenix/, etc.) pour être persistantes entre les mises à jour.
 """
 
-import kuzu
+import real_ladybug as kuzu
 import logging
 import os
 import sys

@@ -125,7 +125,7 @@ class WriteQueue:
 class _DBHandle:
     """Wrappeur pour une connexion Kuzu avec cycle de vie explicite."""
     def __init__(self, name: str, path: Path):
-        import kuzu
+        import real_ladybug as kuzu
         self.name = name
         self.path = path
         self._db = kuzu.Database(str(path))
@@ -283,7 +283,7 @@ class KuzuWorker:
 
 def restore_from_latest_snapshot(db_name: str = "system") -> dict:
     """Restaure UNE base depuis son dernier snapshot."""
-    import kuzu
+    import real_ladybug as kuzu
 
     snap_subdir = SNAPSHOT_DIR / db_name.capitalize()
     if not snap_subdir.exists():
