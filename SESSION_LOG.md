@@ -340,3 +340,77 @@ assumer/deviner l'usage exact sans son input.
   `gouv quebec\`, `université lavale\` (pas des zips, contenu inconnu)
 - Lire la Charte Ortolang au complet pour les conditions de licence exactes
 - Discuter avec Steve de l'usage prevu exact pour orienter le prochain travail
+
+---
+
+## 2026-08-15 — DECOUVERTE IMPORTANTE: travail parallele OpenCode + memoire partagee
+
+### Systeme de memoire OpenCode deja existant (repond a la question "sync Claude/OpenCode")
+OpenCode a DEJA un systeme de memoire graphe LadybugDB fonctionnel:
+`C:\Users\Administrateur\.config\opencode\memory-server\memory.lbdb`
+Schema: noeuds `Entry` relies a `Domain` via `BELONGS_TO`. Domaines vus: "projects"
+(entries projects-008 a projects-016), "azelia", "exchanges", "learnings".
+Requetable directement en Python: `import real_ladybug as kuzu; db=kuzu.Database(path); conn=kuzu.Connection(db); conn.execute(cypher)`.
+Config MCP: serveur "ladybugdb" dans `C:\Users\Administrateur\.config\opencode\opencode.jsonc`.
+Autre graphe lie: `C:\Users\Administrateur\.config\opencode\graphs\module_map.lbdb`
+(code-map des modules, injecte a chaque session OpenCode via CODEMAP.md).
+**Pour futures sessions Claude**: interroger cette base en Python directement (voir
+`_tmp_query_memory.py` supprime apres usage, pattern a refaire au besoin) donne
+acces a l'historique COMPLET du projet cote OpenCode — a faire en debut de session.
+
+### CHANGEMENT DE NOM DECOUVERT — a clarifier avec Steve
+Entry `projects-011` (2026-08-11): le nom choisi pour l'assistant est **MIRA**
+(propose par l'IA elle-meme dans une discussion, valide par Steve: "seulement Mira").
+**PAS applique dans nos configs actuelles** — wake word encore "phoenix" partout
+(audio_config.json, phoenix_config.json). A CLARIFIER avec Steve: le nom du PROJET/
+repo reste "mycroft-phoenix" (technique) mais le PERSONA/wake word devrait peut-etre
+devenir "Mira"? Ne pas assumer, demander avant de changer quoi que ce soit.
+
+### Contexte design important — TSA (projects-013, 2026-08-12)
+Le fils de Steve (5 ans) est autiste. Implications deja documentees par
+Steve/OpenCode pour le design de l'assistant: voix douce/reglable, volume
+parametrable (sensibilite sensorielle), reponses previsibles/litterales,
+routines stables. Rituel "Mira dit bonjour a <prenom>" envisage. A garder en tete
+pour toute future feature UX/voix.
+
+### TRAVAIL OPENCODE RECUPERE ET COMMIT (etait local non-committe, main a main avec
+### le commit corpus 77128cf — bundle involontaire mais sans perte)
+Fichiers modifies par OpenCode le 2026-08-15 (session "Stabilite + Spec Steve",
+entry projects-016), maintenant surs sur GitHub:
+- `mycroft/audio/voice_loop.py` (+30 lignes nettes): remplace le `processing_lock`
+  non-bloquant (qui IGNORAIT les requetes concurrentes — bug reel identifie par
+  OpenCode) par une vraie file FIFO (Queue), traitement sequentiel garanti.
+  **CONFIRME: mon fix `line_buffering=True` (ligne 749) a SURVECU, toujours present.**
+- Skill date_time repare: emettait sur "speak" au lieu de "phoenix.speak" — bug
+  distinct de tout ce qu'on a debug nous-memes, trouve et fixe par OpenCode.
+- Heure/date reelles via NTP (pool.ntp.org) + fallback WorldTimeAPI + fallback
+  systeme (UDP 123 bloque par le firewall sur cette machine -> utilise "Source
+  system" en pratique).
+- `mycroft/pipeline.py` (+412/-lignes, gros changement): architecture confirmee
+  "fallback_only" pour le LLM (coherent avec ce que j'avais mis dans
+  phoenix_config.json!) + nouveau flag `llm_on_known_intents=false`. Skill
+  histoire (storytelling) branchee: activable/desactivable + choix du modele IA
+  depuis le chat web, endpoints `/api/story` GET/POST.
+- `mycroft/web/server.py` (+70) et `templates/index.html` (+171): toggle
+  "Activer le conte" + select "IA du conte" dans le panneau web.
+- Nouveaux fichiers: `mycroft/memory/azelia_knowledge.py`, `phoenix_azelia.lbdb`
+  (base LadybugDB 2.3 Mo, contenu pas explore) — lie au "modele Azelia" mentionne
+  pour le conteur.
+- Storyteller SFX (projects-015, 2026-08-14): 39 sons OGG (95 Mo) integres, tags
+  `[sfx:nom]` dans le texte LLM, conversion ffmpeg, teste et fonctionnel.
+
+### A FAIRE prochaine session (priorite)
+1. **Redemarrer voice_loop.py** avec le code fusionne (mon fix line_buffering +
+   FIFO OpenCode + skill date_time repare + storytelling) — PAS ENCORE teste
+   ensemble apres le merge involontaire. Verifier qu'il n'y a pas de conflit
+   logique entre mon ancien `handle_utterance`/`processing_lock` compris dans
+   mes notes plus haut (2026-08-14) et la nouvelle file FIFO d'OpenCode — le
+   code sur disque est maintenant la version OpenCode (plus recente), mes notes
+   du 2026-08-14 sur `processing_lock` sont OBSOLETES/historiques seulement.
+2. Clarifier le nom "Mira" vs "Phoenix" avec Steve avant de toucher au wake word.
+3. Explorer `phoenix_azelia.lbdb` / `azelia_knowledge.py` pour comprendre le
+   "modele Azelia" (pas documente ailleurs dans ce log).
+4. Continuer le travail intents FR entame plus tot (chatterbot_corpus,
+   adaptation du script d'import pour le format skill.json) — TOUJOURS EN ATTENTE.
+5. Interroger le domaine "azelia", "exchanges", "learnings" de memory.lbdb
+   (seulement "projects" explore cette session) pour contexte additionnel.
