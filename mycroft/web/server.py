@@ -48,8 +48,9 @@ class WebServer:
     """Serveur Flask Phoenix. Se branche sur le hub interne."""
 
     def __init__(self, hub=None, host="127.0.0.1", port=8181,
-                 username=None, password=None, logger=None):
+                 username=None, password=None, logger=None, pipeline=None):
         self.hub = hub
+        self.pipeline = pipeline
         cfg = _load_config()
         # phoenix_config.json (section web) fait autorité sur host/port
         self.host = cfg.get("host", host)
@@ -93,7 +94,14 @@ class WebServer:
 
     def _append_chat(self, role, text):
         with self._history_lock:
-            self.chat_history.append({"role": role, "text": text})
+            # Horodatage serveur : c'est l'heure RÉELLE du message, pas celle
+            # du rafraîchissement navigateur (bug: tous les messages portaient
+            # l'heure du reload de la page).
+            self.chat_history.append({
+                "role": role,
+                "text": text,
+                "ts": time.time(),
+            })
             # Garder un historique borne (eviter de tout stocker en RAM)
             if len(self.chat_history) > 500:
                 self.chat_history = self.chat_history[-500:]
@@ -167,6 +175,64 @@ class WebServer:
                 self.hub.emit("recognizer_loop:utterance", {"utterances": [text]})
                 return jsonify({"status": "ok", "sent": text})
             return jsonify({"error": "hub non connecte"}), 500
+
+        @app.route("/api/models")
+        @login_required
+        def api_models():
+            """Liste les modeles Ollama installes + le modele actif."""
+            models = []
+            if self.pipeline is not None:
+                try:
+                    models = self.pipeline.get_available_models()
+                except Exception as e:
+                    _log(f"api_models: {e}")
+            current = ""
+            if self.pipeline is not None:
+                current = getattr(self.pipeline, "current_model", "") or ""
+            return jsonify({"models": models, "current": current})
+
+        @app.route("/api/model", methods=["POST"])
+        @login_required
+        def api_model():
+            """Change le modele actif du pipeline (a chaud)."""
+            data = request.get_json(silent=True) or {}
+            model_id = (data.get("model") or "").strip()
+            if not model_id:
+                return jsonify({"error": "model manquant"}), 400
+            if self.pipeline is None:
+                return jsonify({"error": "pipeline non connecte"}), 500
+            ok = self.pipeline.set_model(model_id)
+            if not ok:
+                return jsonify({"error": "modele inconnu"}), 400
+            self.status["model"] = self.pipeline.current_model
+            return jsonify({"ok": True, "model": self.pipeline.current_model})
+
+        @app.route("/api/story", methods=["GET"])
+        @login_required
+        def api_story_get():
+            """Reglages de la skill histoire (enabled + modele du conte)."""
+            if self.pipeline is None:
+                return jsonify({"enabled": True, "model": "", "models": []})
+            try:
+                return jsonify(self.pipeline.get_story_settings())
+            except Exception as e:
+                _log(f"api_story_get: {e}")
+                return jsonify({"error": str(e)}), 500
+
+        @app.route("/api/story", methods=["POST"])
+        @login_required
+        def api_story_post():
+            """Active/desactive la skill histoire et/ou change l'IA du conte."""
+            data = request.get_json(silent=True) or {}
+            if self.pipeline is None:
+                return jsonify({"error": "pipeline non connecte"}), 500
+            ok = self.pipeline.set_story_settings(
+                enabled=data.get("enabled"),
+                model=data.get("model"),
+            )
+            if not ok:
+                return jsonify({"error": "modele du conte inconnu"}), 400
+            return jsonify({"ok": True, **self.pipeline.get_story_settings()})
 
         return app
 

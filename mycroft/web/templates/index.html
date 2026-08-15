@@ -53,6 +53,23 @@
         .stat { margin-bottom: .9rem; }
         .stat .label { color: #94a3b8; font-size: .8rem; }
         .stat .value { font-size: .95rem; color: #e2e8f0; word-break: break-word; }
+        .toggle-row { display: flex; align-items: center; gap: .6rem; }
+        .toggle {
+            appearance: none; width: 42px; height: 24px; background: #334155;
+            border-radius: 999px; position: relative; cursor: pointer;
+            transition: background .2s; outline: none;
+        }
+        .toggle:checked { background: #22c55e; }
+        .toggle::after {
+            content: ''; position: absolute; top: 3px; left: 3px;
+            width: 18px; height: 18px; background: #e2e8f0; border-radius: 50%;
+            transition: left .2s;
+        }
+        .toggle:checked::after { left: 21px; }
+        aside select {
+            width: 100%; padding: .4rem; background: #0f172a; color: #e2e8f0;
+            border: 1px solid #334155; border-radius: 6px; font-size: .85rem;
+        }
         .pill {
             display: inline-block; padding: .15rem .6rem; border-radius: 999px;
             font-size: .75rem; font-weight: 600;
@@ -68,7 +85,10 @@
 <body>
     <header>
         <h1>Phoenix</h1>
-        <div>
+        <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+            <label for="model-select" style="color:#94a3b8;font-size:.85rem;">Modèle :</label>
+            <select id="model-select" style="padding:.4rem;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:6px;font-size:.85rem;"></select>
+            <button id="model-apply" style="padding:.4rem .9rem;background:#38bdf8;border:none;border-radius:6px;color:#0f172a;font-weight:600;cursor:pointer;">Appliquer</button>
             <span class="user">Connecté : {{ username }}</span>
             <a href="/logout">Se déconnecter</a>
         </div>
@@ -88,6 +108,22 @@
             <div class="stat"><div class="label">Wake word</div><div class="value" id="s-wake">—</div></div>
             <div class="stat"><div class="label">Pipeline</div><div id="s-pipeline" class="pill off">—</div></div>
             <div class="stat"><div class="label">À l'écoute</div><div id="s-listening" class="pill off">—</div></div>
+            <hr style="border-color:#334155;margin:1rem 0;">
+            <h2>Skill Histoire</h2>
+            <div class="stat">
+                <div class="label">Activer le conte</div>
+                <div class="toggle-row">
+                    <input type="checkbox" id="story-toggle" class="toggle">
+                    <span class="value" id="story-state">—</span>
+                </div>
+            </div>
+            <div class="stat">
+                <div class="label">IA du conte</div>
+                <select id="story-model"></select>
+            </div>
+            <div class="stat">
+                <button id="story-apply" style="padding:.4rem .9rem;background:#38bdf8;border:none;border-radius:6px;color:#0f172a;font-weight:600;cursor:pointer;width:100%;">Appliquer</button>
+            </div>
         </aside>
     </main>
 
@@ -95,11 +131,132 @@
         const messagesEl = document.getElementById('messages');
         const inputEl = document.getElementById('input');
         const sendEl = document.getElementById('send');
+        const modelSelect = document.getElementById('model-select');
+        const modelApply = document.getElementById('model-apply');
 
-        function addMsg(role, text) {
+        async function loadModels() {
+            try {
+                const r = await fetch('/api/models');
+                if (r.redirected) { window.location.href = r.url; return; }
+                const d = await r.json();
+                modelSelect.innerHTML = '';
+                const list = d.models || [];
+                for (const m of list) {
+                    const opt = document.createElement('option');
+                    opt.value = m.id || m;
+                    opt.textContent = m.name || m;
+                    if (opt.value === d.current) opt.selected = true;
+                    modelSelect.appendChild(opt);
+                }
+                if (!list.length) {
+                    const opt = document.createElement('option');
+                    opt.value = d.current || '';
+                    opt.textContent = d.current || '—';
+                    modelSelect.appendChild(opt);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function applyModel() {
+            const model = modelSelect.value;
+            if (!model) return;
+            modelApply.disabled = true;
+            try {
+                const r = await fetch('/api/model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model }),
+                });
+                const d = await r.json();
+                if (d.ok) {
+                    document.getElementById('s-model').textContent = d.model || model;
+                    addMsg('assistant', 'Modèle changé : ' + (d.model || model));
+                } else {
+                    addMsg('assistant', 'Erreur : ' + (d.error || 'impossible de changer le modèle'));
+                }
+            } catch (e) {
+                console.error(e);
+                addMsg('assistant', 'Erreur réseau lors du changement de modèle.');
+            } finally {
+                modelApply.disabled = false;
+            }
+        }
+
+        modelApply.addEventListener('click', applyModel);
+
+        // ── Skill Histoire ────────────────────────────────────────────────
+        const storyToggle = document.getElementById('story-toggle');
+        const storyModel = document.getElementById('story-model');
+        const storyApply = document.getElementById('story-apply');
+        const storyState = document.getElementById('story-state');
+        let storyEnabled = true;
+        let storyCurrentModel = '';
+
+        async function loadStorySettings() {
+            try {
+                const r = await fetch('/api/story');
+                if (r.redirected) { window.location.href = r.url; return; }
+                const d = await r.json();
+                storyEnabled = !!d.enabled;
+                storyCurrentModel = d.model || '';
+                storyToggle.checked = storyEnabled;
+                storyState.textContent = storyEnabled ? 'Activé' : 'Désactivé';
+                // Option par défaut : modèle courant
+                storyModel.innerHTML = '';
+                const opt0 = document.createElement('option');
+                opt0.value = '';
+                opt0.textContent = 'Modèle courant';
+                storyModel.appendChild(opt0);
+                for (const m of (d.models || [])) {
+                    const opt = document.createElement('option');
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (m === storyCurrentModel) opt.selected = true;
+                    storyModel.appendChild(opt);
+                }
+                if (storyCurrentModel) storyModel.value = storyCurrentModel;
+            } catch (e) { console.error(e); }
+        }
+
+        async function applyStorySettings() {
+            storyApply.disabled = true;
+            try {
+                const r = await fetch('/api/story', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enabled: storyToggle.checked,
+                        model: storyModel.value,
+                    }),
+                });
+                const d = await r.json();
+                if (d.ok) {
+                    storyEnabled = !!d.enabled;
+                    storyCurrentModel = d.model || '';
+                    storyToggle.checked = storyEnabled;
+                    storyState.textContent = storyEnabled ? 'Activé' : 'Désactivé';
+                    if (storyCurrentModel) storyModel.value = storyCurrentModel;
+                    addMsg('assistant', 'Skill histoire ' + (storyEnabled ? 'activée' : 'désactivée')
+                        + (storyCurrentModel ? ' — IA : ' + storyCurrentModel : ''));
+                } else {
+                    addMsg('assistant', 'Erreur : ' + (d.error || 'impossible'));
+                }
+            } catch (e) {
+                console.error(e);
+                addMsg('assistant', 'Erreur réseau lors de l\'application.');
+            } finally {
+                storyApply.disabled = false;
+            }
+        }
+
+        storyApply.addEventListener('click', applyStorySettings);
+
+        function addMsg(role, text, ts) {
             const div = document.createElement('div');
             div.className = 'msg ' + role;
-            const t = new Date().toLocaleTimeString();
+            // ts = horodatage serveur (heure réelle du message). Sinon, heure locale.
+            const d = ts ? new Date(ts * 1000) : new Date();
+            const t = d.toLocaleTimeString();
             div.innerHTML = text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
                 + '<span class="time">' + t + '</span>';
             messagesEl.appendChild(div);
@@ -130,7 +287,7 @@
                 const r = await fetch('/api/history');
                 const hist = await r.json();
                 messagesEl.innerHTML = '';
-                for (const m of hist) addMsg(m.role, m.text);
+                for (const m of hist) addMsg(m.role, m.text, m.ts);
             } catch (e) { console.error(e); }
         }
 
@@ -140,18 +297,24 @@
             inputEl.value = '';
             addMsg('user', text);
             try {
+                // Le POST /api/chat est bloquant : il attend la fin de
+                // l'inférence (hub synchrone). Quand il revient, la réponse
+                // est déjà dans l'historique → on recharge l'affichage.
                 await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: text }),
                 });
             } catch (e) { console.error(e); }
+            await loadHistory();
         }
 
         sendEl.addEventListener('click', send);
         inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
 
         loadHistory();
+        loadModels();
+        loadStorySettings();
         refresh();
         setInterval(refresh, 3000);
     </script>

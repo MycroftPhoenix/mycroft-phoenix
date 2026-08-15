@@ -456,6 +456,7 @@ class VoiceLoop:
                     port=web_cfg.get("port", 8181),
                     username=web_cfg.get("username"),
                     password=web_cfg.get("password"),
+                    pipeline=self.pipeline,
                 )
                 print("[WebUI] Interface web préparée")
             except Exception as e:
@@ -600,27 +601,30 @@ class VoiceLoop:
     def _process_loop(self):
         # FIX concurrence: le web chat (Flask threaded=True) et la boucle
         # vocale peuvent toutes deux emettre "recognizer_loop:utterance" sur
-        # des threads differents. Sans verrou, deux appels Ollama+TTS peuvent
-        # tourner en parallele et melanger leur audio (fichier temp partage,
-        # texte affiche vs audio joue desynchronises). Un seul traitement a
-        # la fois, peu importe la source (voix ou web).
-        processing_lock = threading.Lock()
+        # des threads differents. Sans file d'attente, une requete recue
+        # pendant qu'une autre est en cours etait IGNOREE ("Occupe") -> le
+        # chat web affichait la reponse d'une AUTRE requete (reponses croisees).
+        # On met desormais toutes les utterances dans une file FIFO, traitees
+        # une par une dans l'ordre. Rien n'est perdu.
+        from queue import Queue, Empty
+        request_queue = Queue()
 
         def handle_utterance(message: InternalMessage):
             text = message.data.get("utterances", [""])[0]
             if not text:
                 return
-            if not processing_lock.acquire(blocking=False):
-                print(f"[Pipeline] Occupe, requete ignoree: {text}")
-                return
-            try:
-                self._handle_utterance_locked(text)
-            finally:
-                processing_lock.release()
+            request_queue.put(text)
 
         self.hub.on("recognizer_loop:utterance", handle_utterance)
         while self.running:
-            time.sleep(0.1)
+            try:
+                text = request_queue.get(timeout=0.1)
+            except Empty:
+                continue
+            try:
+                self._handle_utterance_locked(text)
+            except Exception as e:
+                print(f"[Pipeline] Erreur traitement: {e}")
 
     def _handle_utterance_locked(self, text: str):
         """Traitement complet d'une utterance -- appele avec le verrou

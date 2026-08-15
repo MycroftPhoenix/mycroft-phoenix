@@ -222,3 +222,121 @@ Autres fichiers a la racine (non-corpus):
    extraits, contenu inconnu)
 4. Determiner le projet/objectif vise par Steve avec ces corpus (mentionne dans
    la memoire long-terme: potentiel projet data autour du corpus Autisme-Dascalu)
+
+### Inventaire CONFIRME (contenu reel des zips, verifie 2026-08-14)
+
+1. **autismedascalu.zip** (13 fichiers) — Corpus Autisme-Dascalu confirme.
+   Dossiers nommes par sujet (ex: GERMAIN-06-5-09-13, LYRON-03-4-08-04) —
+   probablement transcriptions/enregistrements d'enfants autistes avec codes
+   anonymises (age/session). Format Ortolang tres probable (licence a verifier
+   dans la Charte PDF a la racine).
+
+2. **camfr-treebank-mf-fpc.zip** (5 fichiers) — Treebank francais MEDIEVAL
+   (pas "camerounais" comme suppose) — "camfrv2.1_2025_09_12.conll" (format
+   CoNLL, standard NLP pour annotation syntaxique) + guide d'annotation +
+   image "phraseoMedieval.png". Corpus de francais ancien/medieval annote.
+
+3. **corpus-parents-toxiques.zip** (3 fichiers) — PDF de documentation +
+   nuage de mots. Petit corpus, sujet sensible (temoignages "parents toxiques").
+   Pas de donnees brutes visibles dans les 3 fichiers listes — juste doc +
+   visualisation, le vrai corpus texte est peut-etre ailleurs/pas inclus.
+
+4. **corpus-phileduc.zip** (19 fichiers) — "Phil'educ": transcriptions de
+   seances de philosophie a l'ecole (primaire + college), format CSV par
+   seance/annee (ex: 2016_Questions_seance_1.csv, College/2015_classe_6eme...).
+
+5. **corpus-recits-ademe.zip** (2 fichiers) — Un seul fichier texte
+   "CORPUS RECITS.txt" lie a l'ADEME (agence francaise transition ecologique).
+
+6. **csonu.zip** (4524 fichiers!) — LE PLUS GROS. Resolutions du Conseil de
+   Securite de l'ONU (CSONU) 1946-2015, en anglais (dossier vu) et probablement
+   aussi francais (pas confirme dans l'echantillon). Format XML individuel par
+   resolution + fichier XSL de transformation (txm-front-xmlonu-xtz.xsl —
+   "TXM" = plateforme d'analyse textometrique, format compatible TXM confirme).
+
+7. **derom.zip** (578 fichiers) — DEROM confirme = Dictionnaire Etymologique
+   Roman. Articles XML individuels par etymon (notation phonetique dans les
+   noms de fichiers, ex: a'nEll-u.xml, 'trEm-e-.xml — notation API/phonetique
+   des racines romanes reconstruites).
+
+8. **ema-ecrits-scolaires-1.zip** (5817 fichiers!) — 2e plus gros. Ecrits
+   scolaires d'eleves (ex: "ROUBAUD 3-3"), avec PDF de metadonnees/grilles
+   d'ecriture ET scans images (jpg) des productions manuscrites d'eleves
+   (CE1-2018-MN1-D1-E2.jpg etc). Corpus tres riche mais lourd (beaucoup
+   d'images), sujet: apprentissage de l'ecriture.
+
+9. **eval-dataset-bibcheck.zip** (9 fichiers) — Dataset d'evaluation
+   verification bibliographique, 2 versions (v1/v2) en JSONL, avec description.
+   Format TDM (Text and Data Mining) standard — metadata.xml present, meme
+   structure que les 3 autres "eval-dataset-*"/"tdm-eval-*" ci-dessous —
+   TOUS ces datasets (bibcheck, softwaretag, rnsr, ner) semblent venir de la
+   MEME plateforme/collection (structure identique: metadata.xml + TDM.png +
+   donnees). Probablement une collection d'evaluation pour outils de fouille
+   de texte (TDM = Text and Data Mining), possiblement Istex ou similaire
+   (plateforme francaise de fouille de textes scientifiques).
+
+10. **eval-dataset-softwaretag.zip** (7 fichiers) — Detection de mentions de
+    logiciels dans des articles scientifiques (PLoS methods/sentences corpus,
+    Pubmed fulltext corpus) — format JSON.
+
+11. **evaluation-dataset-rnsr.zip** (6 fichiers) — RNSR confirme = Repertoire
+    National des Structures de Recherche. JSONL + guide d'utilisation PDF.
+
+12. **ftb.zip** (277 fichiers) — French TreeBank confirme. Sous-dossier
+    "corpus-fonctions" avec fichiers XML annotes syntaxiquement (categories
+    grammaticales dans les extensions: .cat.xml, .aa.xml, .indent.xml) —
+    corpus de reference classique en NLP francais (articles Le Monde annotes).
+
+13. **neurosciences-corpus.zip** (3 fichiers) — Corpus bilingue neurosciences,
+    format .tmx (Translation Memory eXchange — corpus PARALLELE de traduction,
+    pas juste un corpus monolingue). Utile pour traduction/alignement de
+    terminologie scientifique.
+
+14. **orthocorpus.zip** (30 fichiers) — Corpus d'orthographe organise PAR
+    ANNEE (1999 a 2022+), "Fichiers Orthocorpus v4_parAnnee" — probablement
+    des dictees ou productions ecrites annotees en erreurs orthographiques
+    sur plusieurs annees (utile pour un correcteur/detecteur d'erreurs).
+
+15. **tdm-eval-dataset-ner.zip** (17 fichiers) — Meme famille que bibcheck/
+    softwaretag/rnsr (voir #9). NER = Named Entity Recognition. Contient un
+    fichier WikiNER neerlandais (aij-wikiner-nl-wp3.conll) — attention,
+    PAS francais celui-la, format CoNLL standard NER.
+
+16. **texttokids.zip** (3818 fichiers) — 3e plus gros. "Text to Kids":
+    corpus d'apprentissage automatique (train/dev/test_prompt.tsv) +
+    "CorpusAIA" avec annotations multiples (A1, WP7Fiction...) — corpus
+    de litterature/texte pour enfants avec annotations riches, structure
+    de type shared-task (train/dev/test split = format ML standard).
+
+### Synthese / hypothese sur l'usage prevu (Claude, a valider avec Steve)
+Ces corpus sont TOUS d'origine academique/Ortolang/TDM francophone (recherche
+linguistique, NLP, sciences de l'education, sciences sociales). Rien a voir
+directement avec mycroft-phoenix (assistant vocal domestique). Hypothese la
+plus probable vu le contexte Steve (interet SpaCy/NLP, projet "Vision" avec
+spaCy fr_core_news_sm + embeddings): **entrainement ou enrichissement d'un
+modele de langue francais local** (fine-tuning, embeddings personnalises,
+ou alimentation d'un moteur de recherche/RAG local) — possiblement pour
+Mycroft-Phoenix lui-meme (comprehension du francais quebecois/familier) OU
+pour un projet NLP francophone separe. A CONFIRMER avec Steve — ne pas
+assumer/deviner l'usage exact sans son input.
+
+### Points d'attention avant utilisation
+- **Licences**: Charte_Ortolang_V20150217.pdf a la racine confirme que
+  plusieurs corpus viennent d'Ortolang — verifier les conditions d'usage
+  AVANT tout entrainement/redistribution (certains corpus academiques ont
+  des restrictions, ex: usage recherche seulement, pas commercial).
+  csonu.zip et evaluation-dataset-rnsr.zip semblent venir d'une plateforme
+  TDM differente (Istex?) — licences potentiellement differentes aussi.
+- **texttokids** et **ema-ecrits-scolaires** concernent des ENFANTS
+  (productions scolaires, litterature jeunesse) — porter attention
+  particuliere a la protection des donnees/anonymisation si utilise.
+- **Poids/volume**: csonu (4524 fichiers), ema-ecrits-scolaires (5817,
+  incluant des scans image), texttokids (3818) sont les 3 plus volumineux —
+  a prioriser en dernier si l'espace disque ou le temps de traitement est
+  une contrainte.
+
+### PAS ENCORE FAIT (a la prochaine session)
+- Explorer le contenu des dossiers deja extraits: `erudit.org\`,
+  `gouv quebec\`, `université lavale\` (pas des zips, contenu inconnu)
+- Lire la Charte Ortolang au complet pour les conditions de licence exactes
+- Discuter avec Steve de l'usage prevu exact pour orienter le prochain travail

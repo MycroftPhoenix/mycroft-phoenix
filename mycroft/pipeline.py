@@ -8,6 +8,7 @@ import logging
 import os
 import json
 import sys
+import datetime
 from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -67,7 +68,13 @@ class PhoenixPipeline:
         llm_config = self.config.get("llm", {})
         self.ollama_url = llm_config.get("ollama_url", "http://localhost:11434")
         self.current_model = llm_config.get("default_model", "qwen2.5:1.5b")
+        # Skill histoire : activable/désactivable + choix de l'IA (configurable
+        # depuis le chat web). model "" = modèle courant.
+        story_cfg = llm_config.get("storytelling", {})
+        self.storytelling_enabled = bool(story_cfg.get("enabled", True))
+        self.storytelling_model = story_cfg.get("model", "") or ""
         self.emergency_resources = self._load_emergency_resources()
+        self.azelia = None  # AzeliaKnowledge, initialisé paresseusement
         
     def _load_config(self) -> Dict:
         """Charge la configuration Phoenix."""
@@ -118,6 +125,38 @@ class PhoenixPipeline:
                 return True
         logger.warning(f"Modèle inconnu: {model_id}")
         return False
+
+    def get_story_settings(self) -> Dict:
+        """Retourne les réglages de la skill histoire (pour le chat web)."""
+        return {
+            "enabled": self.storytelling_enabled,
+            "model": self.storytelling_model,
+            "models": [m.get("id") for m in self.get_available_models()],
+        }
+
+    def set_story_settings(self, enabled=None, model=None) -> bool:
+        """Active/désactive la skill histoire et/ou choisit l'IA du conte.
+
+        model "" ou None = modèle courant (current_model). Autrement un id
+        de la liste available_models (sinon retour False).
+        """
+        if enabled is not None:
+            self.storytelling_enabled = bool(enabled)
+        if model is not None:
+            if model == "":
+                self.storytelling_model = ""
+            else:
+                available = [m.get("id") for m in self.get_available_models()]
+                if model not in available:
+                    logger.warning(f"Modèle histoire inconnu: {model}")
+                    return False
+                self.storytelling_model = model
+        self.config.setdefault("llm", {}).setdefault("storytelling", {})
+        self.config["llm"]["storytelling"]["enabled"] = self.storytelling_enabled
+        self.config["llm"]["storytelling"]["model"] = self.storytelling_model
+        self._save_config()
+        logger.info(f"Storytelling: enabled={self.storytelling_enabled}, model={self.storytelling_model!r}")
+        return True
     
     def _save_config(self):
         """Sauvegarde la configuration."""
@@ -303,6 +342,94 @@ class PhoenixPipeline:
             
         return self.intent_matcher.match(text)
         
+    def _web_context(self, query: str, top_k: int = 3) -> str:
+        """Recherche sur internet (DuckDuckGo puis Wikipédia) et retourne
+        un résumé textuel. Best-effort : retourne '' si tout échoue."""
+        try:
+            from mycroft.capabilities.research import search_all
+            results = search_all(query, num_results=top_k)
+            if not results:
+                return ""
+            lines = []
+            for r in results:
+                title = r.get("title", "")
+                snippet = r.get("snippet", "") or ""
+                url = r.get("url", "")
+                if title:
+                    lines.append(f"- {title}: {snippet} ({url})".strip())
+                elif snippet:
+                    lines.append(f"- {snippet}")
+            return "\n".join(lines)[:1500]
+        except Exception as e:
+            logger.debug("Web context: %s", e)
+            return ""
+
+    def _is_azelia_model(self, model: Optional[str] = None) -> bool:
+        """True si le modèle est un modèle Azelia (univers pour enfants)."""
+        m = (model or self.current_model or "").lower()
+        return "azelia" in m
+
+    def _azelia_context(self, query: str) -> str:
+        """Retourne le contexte Azelia (base locale) ou chaîne vide."""
+        if self.azelia is None:
+            try:
+                from mycroft.memory.azelia_knowledge import AzeliaKnowledge
+                self.azelia = AzeliaKnowledge()
+            except Exception as e:
+                logger.warning("AzeliaKnowledge indisponible: %s", e)
+                self.azelia = False
+        if not self.azelia:
+            return ""
+        try:
+            return self.azelia.get_context(query, top_k=4)
+        except Exception as e:
+            logger.debug("get_context Azelia: %s", e)
+            return ""
+
+    _EMOTION_WORDS = [
+        "colere", "colère", "fach", "triste", "peur", "seul", "seule",
+        "solitude", "inquiet", "inquiète", "angoisse", "anxieux", "stress",
+        "tristesse", "émotion", "emotion", "pleur", "pleure", "crie",
+        "joie", "heureux", "heureuse", "content", "amour", "aime",
+        "jaloux", "honte", "coupable", "fatigu", "peine", "en colere",
+        "mal", "bless", "rejet", "ignor", "abandon",
+    ]
+
+    _UNIVERSE_WORDS = [
+        "hulotte", "piquant", "noisette", "lumenia", "lumina", "celestia",
+        "fée", "fee", "forêt", "foret", "lutin", "elfe", "magique",
+        "rêve", "reve", "étoile", "etoile", "chouette", "hérisson",
+        "herisson", "histoire", "raconte", "raconter", "conte",
+    ]
+
+    _WEB_WORDS = [
+        "cherche", "chercher", "recherche", "internet", "google",
+        "duckduckgo", "web", "wikipedia", "wikipédia", "trouve",
+        "trouver", "information", "info", "en ligne", "actualité",
+    ]
+
+    def _azelia_needs_context(self, text: str) -> bool:
+        """Injecter l'univers Azelia seulement si la phrase porte une émotion
+        ou touche à l'univers (personnages, histoire). Pour un 0.5B, injecter
+        l'univers à chaque message le pousse à réciter ses exemples."""
+        low = text.lower()
+        return any(w in low for w in self._EMOTION_WORDS + self._UNIVERSE_WORDS)
+
+    def _wants_web(self, text: str, intent: Optional[str] = None) -> bool:
+        """Le modèle 0.5B est trop petit pour répondre hors de sa base sans
+        inventer : on cherche en ligne par défaut, SAUF pour le dialogue
+        trivial (salutations, remerciements...) et l'univers Azelia."""
+        if intent and intent in ("greeting", "how_are_you", "thanks",
+                                 "farewell", "name", "help", "yes", "no",
+                                 "time", "date"):
+            return False
+        low = text.lower()
+        # Une question émotionnelle/universe passe par la base, pas le web
+        if any(w in low for w in self._EMOTION_WORDS + self._UNIVERSE_WORDS):
+            return False
+        # Sinon (question factuelle hors base) → recherche automatique
+        return True
+
     def query_ollama(
         self,
         prompt: str,
@@ -310,16 +437,42 @@ class PhoenixPipeline:
         system_prompt: Optional[str] = None,
         temperature: float = 0.1,
         timeout: int = 60,
+        intent: Optional[str] = None,
     ) -> str:
         """Interroge Ollama."""
         import requests
         
         model = model or self.current_model
-        
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+        is_azelia = self._is_azelia_model(model)
+
+        # ── Modèles Azelia ─────────────────────────────────────────────
+        # Le Modelfile contient DÉJÀ l'identité complète d'Azelia en SYSTEM.
+        # Ne JAMAIS envoyer de message "system" sinon Ollama l'écrase
+        # (et le modèle 0.5B perd son univers + se noie sous 2 prompts).
+        # On enrichit donc le message USER avec l'univers (base locale)
+        # + les infos internet, de façon compacte.
+        if is_azelia:
+            user_content = prompt
+            # Contexte univers seulement si émotion/univers (sinon récitation)
+            if self._azelia_needs_context(prompt):
+                azelia_ctx = self._azelia_context(prompt)
+                if azelia_ctx:
+                    # Compact: on garde l'essentiel pour un modèle 0.5B (ctx 4096)
+                    user_content = f"{prompt}\n\n{azelia_ctx[:1800]}"
+            # Internet si hors base (le 0.5B invente sinon)
+            if self._wants_web(prompt, intent=intent):
+                try:
+                    web = self._web_context(prompt)
+                    if web:
+                        user_content += f"\n\nInfos internet:\n{web[:1200]}"
+                except Exception as e:
+                    logger.debug("Recherche web Azelia: %s", e)
+            messages = [{"role": "user", "content": user_content}]
+        else:
+            messages = []
+            if system_prompt:
+                messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "user", "content": prompt})
         
         # Options de base
         options = {
@@ -477,7 +630,7 @@ class PhoenixPipeline:
         # Pattern principal: mot-cle meteo + mots intermediaires + "a X"
         # (ex: "il fait quel temps a Quebec" -> Quebec)
         m = re.search(
-            r"(?:meteo|temps|previsions?)\b.*?\b(?:a|à|de|pour|sur)\s+([A-ZÀ-Ü][\wàâçéèêëîïôùûü'-]{2,})",
+            r"(?:meteo|temps|température|temperature|prévisions|previsions)\b.*?\b(?:a|à|de|pour|sur)\s+([A-ZÀ-Ü][\wàâçéèêëîïôùûü'-]{2,})",
             text, re.IGNORECASE | re.UNICODE,
         )
         if m and m.group(1).lower() not in _NOT_CITY:
@@ -485,7 +638,7 @@ class PhoenixPipeline:
         # "meteo X" sans preposition (ex: "meteo montreal")
         # Exclut les formes verbales ("temps fait-il", "temps est-il")
         m = re.search(
-            r"(?:meteo|temps|previsions?)\s+([A-ZÀ-Ü][\wàâçéèêëîïôùûü'-]{2,})",
+            r"(?:meteo|temps|température|temperature|prévisions|previsions)\s+([A-ZÀ-Ü][\wàâçéèêëîïôùûü'-]{2,})",
             text, re.IGNORECASE | re.UNICODE,
         )
         if m and not re.search(r"-", m.group(1)) and m.group(1).lower() not in _NOT_CITY:
@@ -497,6 +650,46 @@ class PhoenixPipeline:
                     return ent["text"]
         except Exception:
             pass
+        return None
+
+    def _fetch_ntp_time(self) -> Optional[datetime.datetime]:
+        """Heure vérifiée via api_gateway.py time (SNTP, timeout court).
+        Retourne un datetime LOCAL (fuseau du système appliqué par
+        fromtimestamp). None si le NTP échoue -> on garde l'horloge système.
+        """
+        try:
+            import subprocess
+            candidates = [
+                os.environ.get("OPENCODE_API_GATEWAY", ""),
+                os.path.expanduser("~/.opencode/api_gateway.py"),
+                r"E:\opencode\.opencode\api_gateway.py",
+            ]
+            api = next((p for p in candidates if p and os.path.exists(p)), None)
+            if not api:
+                return None
+            env = dict(os.environ)
+            env.setdefault("PYTHONIOENCODING", "utf-8")
+            result = subprocess.run(
+                [sys.executable, api, "time"],
+                capture_output=True, text=True, encoding="utf-8",
+                errors="replace", env=env, timeout=6,
+            )
+            src = "system"
+            epoch = None
+            for line in result.stdout.strip().split("\n"):
+                line = line.strip()
+                if line.startswith("Time:"):
+                    try:
+                        epoch = float(line.split(":", 1)[1].split("/")[0].strip())
+                    except Exception:
+                        epoch = None
+                elif line.startswith("Source:"):
+                    src = line.split(":", 1)[1].strip()
+            if src == "ntp" and epoch is not None:
+                # fromtimestamp applique le fuseau horaire configuré du système
+                return datetime.datetime.fromtimestamp(epoch)
+        except Exception as e:
+            logger.debug("_fetch_ntp_time: %s", e)
         return None
 
     def _fetch_weather(self, city: str = "Matane") -> Optional[Dict]:
@@ -670,61 +863,166 @@ class PhoenixPipeline:
                     prompt=prompt,
                     system_prompt=system_prompt,
                     temperature=0.3,
+                    intent=intent_name,
                 )
+            elif intent_name in ("time", "date"):
+                # Heure/date RÉELLES : réponse de chatterbot fixe, jamais au LLM.
+                # Spec Steve: « Il est » (base) + heure système; avec internet,
+                # vérif rapide NTP (api_gateway) corrigée pour le fuseau local.
+                now = None
+                if intent_name == "time":
+                    now = self._fetch_ntp_time()  # None -> heure système
+                if now is None:
+                    now = datetime.datetime.now()
+                if intent_name == "time":
+                    response = {
+                        "fr": f"Il est {now.strftime('%H h %M')}.",
+                        "en": f"It's {now.strftime('%I:%M %p')}.",
+                    }.get(detected_lang, f"Il est {now.strftime('%H h %M')}.")
+                else:
+                    jours = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+                    mois = ["janvier", "février", "mars", "avril", "mai", "juin",
+                            "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
+                    response = {
+                        "fr": f"Nous sommes {jours[now.weekday()]} {now.day} {mois[now.month-1]} {now.year}.",
+                        "en": f"Today is {now.strftime('%A, %B %d, %Y')}.",
+                    }.get(detected_lang, f"Nous sommes {jours[now.weekday()]} {now.day} {mois[now.month-1]} {now.year}.")
             elif intent_name in ("greeting", "how_are_you", "thanks", "farewell", "name", "help"):
-                # FIX 2026-08-04: brancher l'IA sur les intents de dialogue aussi.
-                # Avant: reponse fixe systematique ("ca vas, mais ca pourrai aller
-                # mieux" -> "Ca va bien merci ! Et toi ?") -> Phoenix paraissait
-                # sans IA. On laisse l'IA repondre naturellement, avec repli sur
-                # la reponse fixe si elle echoue ou depasse le delai.
+                # Spec Steve: le système de base (réponses fixes) répond aux
+                # intents connus. Le LLM n'intervient PAS par défaut sur les
+                # intents de dialogue — il est réservé au fallback des
+                # réponses inconnues. Optionnellement activable dans la config
+                # (llm.architecture.llm_on_known_intents: true).
                 fixed = normal_responses[intent_name].get(detected_lang, normal_responses[intent_name]["fr"])
-                fallback = fixed
-                dialogue_prompts = {
-                    "greeting": {
-                        "fr": "Reponds brievement a une salutation, en francais.",
-                        "en": "Reply briefly to a greeting.",
-                    },
-                    "how_are_you": {
-                        "fr": "Reponds en francais. Si l'utilisateur semble aller mal, sois empathique.",
-                        "en": "Reply briefly. If the user seems unwell, be empathetic.",
-                    },
-                    "thanks": {
-                        "fr": "Reponds brievement a un remerciement, en francais.",
-                        "en": "Reply briefly to a thank you.",
-                    },
-                    "farewell": {
-                        "fr": "Reponds brievement a un au revoir, en francais.",
-                        "en": "Reply briefly to a goodbye.",
-                    },
-                    "name": {
-                        "fr": "Reponds brievement si on te demande ton nom, en francais.",
-                        "en": "Reply briefly if asked your name.",
-                    },
-                    "help": {
-                        "fr": "Liste brievement ce que tu peux faire, en francais.",
-                        "en": "Briefly list what you can do.",
-                    },
-                }
-                sys_prompt = dialogue_prompts[intent_name].get(detected_lang, dialogue_prompts[intent_name]["fr"])
-                try:
-                    resp = self.query_ollama(
-                        prompt=f"Utilisateur: {text}",
-                        system_prompt=sys_prompt,
-                        temperature=0.4,
-                        timeout=45,
-                    )
-                    resp = resp.strip()
-                    if resp and resp != "Désolé, je n'ai pas pu générer de réponse." and resp != "Je ne peux pas joindre le modèle local.":
-                        response = resp
-                    else:
+                use_llm = self.config.get("llm", {}).get("architecture", {}).get("llm_on_known_intents", False)
+                if not use_llm:
+                    response = fixed
+                else:
+                    fallback = fixed
+                    dialogue_prompts = {
+                        "greeting": {
+                            "fr": "Reponds brievement a une salutation, en francais.",
+                            "en": "Reply briefly to a greeting.",
+                        },
+                        "how_are_you": {
+                            "fr": "Reponds en francais. Si l'utilisateur semble aller mal, sois empathique.",
+                            "en": "Reply briefly. If the user seems unwell, be empathetic.",
+                        },
+                        "thanks": {
+                            "fr": "Reponds brievement a un remerciement, en francais.",
+                            "en": "Reply briefly to a thank you.",
+                        },
+                        "farewell": {
+                            "fr": "Reponds brievement a un au revoir, en francais.",
+                            "en": "Reply briefly to a goodbye.",
+                        },
+                        "name": {
+                            "fr": "Reponds brievement si on te demande ton nom, en francais.",
+                            "en": "Reply briefly if asked your name.",
+                        },
+                        "help": {
+                            "fr": "Liste brievement ce que tu peux faire, en francais.",
+                            "en": "Briefly list what you can do.",
+                        },
+                    }
+                    sys_prompt = dialogue_prompts[intent_name].get(detected_lang, dialogue_prompts[intent_name]["fr"])
+                    try:
+                        resp = self.query_ollama(
+                            prompt=f"Utilisateur: {text}",
+                            system_prompt=sys_prompt,
+                            temperature=0.4,
+                            timeout=45,
+                            intent=intent_name,
+                        )
+                        resp = resp.strip()
+                        if resp and resp != "Désolé, je n'ai pas pu générer de réponse." and resp != "Je ne peux pas joindre le modèle local.":
+                            response = resp
+                        else:
+                            response = fallback
+                    except Exception:
                         response = fallback
-                except Exception:
-                    response = fallback
+            elif intent_name == "storytelling":
+                # Skill histoire : activable/désactivable + choix de l'IA depuis
+                # le chat web (config llm.storytelling). Désactivée → réponse
+                # fixe neutre. Activée → LLM (modèle dédié ou courant).
+                if not self.storytelling_enabled:
+                    response = {
+                        "fr": "Je ne raconte pas d'histoires pour l'instant.",
+                        "en": "I'm not telling stories right now.",
+                    }.get(detected_lang, "Je ne raconte pas d'histoires pour l'instant.")
+                else:
+                    story_model = self.storytelling_model or self.current_model
+                    is_azelia_story = self._is_azelia_model(story_model)
+                    if is_azelia_story:
+                        # Azelia : identité déjà dans le Modelfile (SYSTEM),
+                        # ne PAS envoyer de system_prompt (sinon écrasé).
+                        sys_prompt = None
+                        prompt = (
+                            f"{text}\n\n"
+                            "Raconte une histoire courte et chaleureuse, adaptée "
+                            "à un enfant, avec des personnages de ton univers."
+                        )
+                    else:
+                        sys_prompt = (
+                            "Tu es un conteur bienveillant pour enfants. "
+                            "Raconte une histoire courte, chaleureuse et "
+                            "adaptée à un enfant. Réponds en français."
+                        )
+                        prompt = f"Utilisateur: {text}"
+                    try:
+                        resp = self.query_ollama(
+                            prompt=prompt,
+                            system_prompt=sys_prompt,
+                            temperature=0.7,
+                            timeout=90,
+                            intent="storytelling",
+                            model=story_model,
+                        )
+                        resp = resp.strip()
+                        if resp and resp != "Désolé, je n'ai pas pu générer de réponse." and resp != "Je ne peux pas joindre le modèle local.":
+                            response = resp
+                        else:
+                            response = "Je n'ai pas compris. Peux-tu reformuler ?"
+                    except Exception:
+                        response = "Je n'ai pas compris. Peux-tu reformuler ?"
+            elif intent_name == "unknown":
+                # FIX: le LLM doit repondre meme sans contexte web (context vide).
+                # Avant: "and context" bloquait TOUT appel LLM des qu'aucune
+                # recherche web n'avait ete faite -> fallback generique systematique.
+                system_prompt = "Tu es Phoenix, un assistant utile. Réponds en français à la question de l'utilisateur en utilisant le contexte fourni si pertinent."
+                prompt = f"Utilisateur: {text}"
+                if context:
+                    prompt += f"\n\nContexte web:\n{context[:2000]}"
+                response = self.query_ollama(
+                    prompt=prompt,
+                    system_prompt=system_prompt,
+                    temperature=0.3,
+                    intent=intent_name,
+                )
             else:
-                resp_map = normal_responses.get(intent_name, {
-                    "fr": "Je n'ai pas compris. Peux-tu reformuler ?"
-                })
-                response = resp_map.get(detected_lang, resp_map.get("fr"))
+                # Modèles Azelia : les intents non couverts (story, requêtes
+                # créatives, questions libres...) passent par le LLM au lieu
+                # du fallback fixe "Je n'ai pas compris".
+                if self._is_azelia_model():
+                    try:
+                        resp = self.query_ollama(
+                            prompt=f"Utilisateur: {text}",
+                            temperature=0.4,
+                            timeout=60,
+                            intent=intent_name,
+                        )
+                        resp = resp.strip()
+                        if resp and resp != "Désolé, je n'ai pas pu générer de réponse." and resp != "Je ne peux pas joindre le modèle local.":
+                            response = resp
+                        else:
+                            response = "Je n'ai pas compris. Peux-tu reformuler ?"
+                    except Exception:
+                        response = "Je n'ai pas compris. Peux-tu reformuler ?"
+                else:
+                    resp_map = normal_responses.get(intent_name, {
+                        "fr": "Je n'ai pas compris. Peux-tu reformuler ?"
+                    })
+                    response = resp_map.get(detected_lang, resp_map.get("fr"))
             
         return {
             "text": text,
