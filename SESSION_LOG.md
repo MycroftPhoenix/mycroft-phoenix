@@ -173,3 +173,52 @@ que ca marche pas.
 **A eclaircir avant de commencer**: priorite relative vs le reste du backlog
 (system DB intents en premier, selon Steve 2026-08-14). Autres parametres oublies
 possibles a lister avec Steve avant de commencer le design.
+
+---
+
+## 2026-08-14 (suite 3) — Inventaire corpus a la racine D:\ (analyse en cours, checkpoints frequents car quota bas)
+
+Steve a demande d'analyser les corpus/datasets qui trainent a la racine de D:\
+(rien a voir avec mycroft-phoenix directement, mais presumement pour un futur
+projet data/NLP — voir memoire long-terme: "corpus NLP francais Autisme-Dascalu
+sur Ortolang/HuggingFace pour projet data potentiel").
+
+### Inventaire brut (racine D:\, non-mycroft)
+Fichiers zip (non extraits, tailles/contenus PAS encore verifies a ce stade):
+- `autismedascalu.zip` — tres probablement le corpus "Autisme-Dascalu" (Ortolang/HuggingFace) deja mentionne dans le contexte Steve
+- `camfr-treebank-mf-fpc.zip` — treebank francais (camerounais? "camfr" = Cameroon French?), MF-FPC = Multi-Function ou format specifique a determiner
+- `corpus-parents-toxiques.zip` — corpus texte, sujet "parents toxiques" (sante mentale/temoignages?)
+- `corpus-phileduc.zip` — "Phil'educ"? corpus philo/education
+- `corpus-recits-ademe.zip` — recits lies a l'ADEME (agence francaise environnement/energie)?
+- `csonu.zip` — a determiner (CSO+NU? Conseil Superieur ONU?)
+- `derom.zip` — DEROM = possiblement "Dictionnaire Etymologique Roman" (corpus linguistique romaniste connu)
+- `ema-ecrits-scolaires-1.zip` — EMA = ecrits d'eleves/scolaires, corpus scolaire
+- `eval-dataset-bibcheck.zip` — dataset d'evaluation, verification bibliographique
+- `eval-dataset-softwaretag.zip` — dataset d'evaluation, tagging de logiciels (mentions de logiciels dans du texte?)
+- `evaluation-dataset-rnsr.zip` — RNSR = Repertoire National des Structures de Recherche (France) — dataset lie a la recherche academique
+- `ftb.zip` — tres probablement French TreeBank (corpus syntaxique francais classique/connu en NLP)
+- `neurosciences-corpus.zip` — corpus textes neurosciences
+- `orthocorpus.zip` — corpus orthographe (verification/correction orthographique)
+- `tdm-eval-dataset-ner.zip` — TDM (Text and Data Mining) dataset eval pour NER (Named Entity Recognition)
+- `texttokids.zip` — corpus texte destine aux enfants (litterature jeunesse?)
+
+Dossiers (non explores en profondeur encore):
+- `erudit.org\` — tres probablement corpus/donnees de la plateforme Erudit (revues savantes quebecoises/francophones)
+- `gouv quebec\` — donnees/corpus gouvernement du Quebec
+- `université lavale\` (sic, typo pour "laval") — corpus/donnees Universite Laval
+
+Autres fichiers a la racine (non-corpus):
+- `Charte_Ortolang_V20150217.pdf` — charte d'utilisation Ortolang (plateforme francaise de ressources linguistiques) — confirme que plusieurs corpus ci-dessus viennent d'Ortolang
+- `creativecommons.org.url` — raccourci web, probablement licence CC d'un des corpus
+- `envs\`, `pkgs\` — tres probablement environnements Python/conda, PAS des corpus
+- `mycroft-phoenix\`, `mycroft-phoenix-skills\` — projets deja documentes ailleurs dans ce log
+
+### Prochaine etape (a faire quand la session reprend)
+1. Verifier la Charte Ortolang (PDF) pour les conditions d'usage/licence de ces corpus
+2. Lister le contenu de chaque zip SANS forcement extraire (via `Compress-Archive`/
+   `tar -tf` ou Python zipfile.namelist()) pour confirmer les hypotheses ci-dessus
+   sans consommer d'espace disque inutilement
+3. Explorer `erudit.org\`, `gouv quebec\`, `université lavale\` (dossiers deja
+   extraits, contenu inconnu)
+4. Determiner le projet/objectif vise par Steve avec ces corpus (mentionne dans
+   la memoire long-terme: potentiel projet data autour du corpus Autisme-Dascalu)
