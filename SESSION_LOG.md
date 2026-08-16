@@ -545,3 +545,31 @@ au complet — protege automatiquement meme via `git add -A`. Choix de Steve de
 garder smarthome local est bien respecte. Seuls les fichiers du COEUR
 (skills_manager/__main__.py, hybrid_skill.py, padatious_service.py) sont sur
 GitHub, pas les skills elles-memes ni leurs secrets.
+
+---
+
+## 2026-08-16 (suite) — Telechargement complet "Children's stories, French" (20/20)
+
+Suite au filtrage du catalogue: les 20 titres de la categorie "Children's
+stories, French" ont ete telecharges avec succes (20/20, 0 echec) via
+`https://www.gutenberg.org/cache/epub/{id}/pg{id}.txt`.
+
+Scripts: `D:\contes\extract_children.py` (filtrage liste),
+`D:\contes\download_children.py` (telechargement). Liste complete:
+`D:\contes\liste_children_stories.txt`. Log: `D:\contes\download_children_log.txt`.
+
+**Fichiers dans `D:\contes\brut\`** (23 au total, ~4.5 Mo):
+- 20 titres "Children's stories, French" (Comtesse de Segur x3 — autrice
+  classique majeure -, Dumas, George Sand, Guizot, etc.)
+- Andersen Tome I + II (contes merveilleux, deja fait avant)
+- Grimm Raiponce (seul reussi via Wikisource avant le pivot vers Gutenberg)
+
+**PAS ENCORE FAIT**: Perrault (aucune source texte franc confirmee encore),
+decoupage des recueils en contes individuels (actuellement fichiers = recueils
+complets, pas un fichier par conte), ingestion dans une base de donnees
+(LadybugDB — voir plan hybride discute plus haut: texte brut + classification
+graphe + embeddings semantiques).
+
+**Prochaine etape logique**: meme methode (filtre catalogue + telechargement
+cible) pour la categorie "Adventure stories"/Jules Verne (skill storyteller
+ado/jeune adulte, idee documentee plus haut).
