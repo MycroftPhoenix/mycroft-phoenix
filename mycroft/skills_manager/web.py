@@ -22,10 +22,8 @@ DEFAULT_PORT = 8190
 
 
 def _manager():
-    from mycroft.data_manager import DataManager
     from mycroft.skills_manager.manager import SkillsManager
-    dm = DataManager()
-    return SkillsManager(dm.get_data_dir() / "skills")
+    return SkillsManager(PROJECT_ROOT / "skills")
 
 
 class SkillsWeb:

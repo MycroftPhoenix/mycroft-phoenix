@@ -466,3 +466,44 @@ vocabulaire d'epoque puis explique en francais moderne.
 **Statut**: idee/sources documentees, RIEN construit. Steve va partager la
 conversation complete avec Ketty pour plus de pistes — a integrer a cette
 section quand recue.
+
+---
+
+## 2026-08-16 — Catalogue Gutenberg filtre + idee skill storyteller ado/jeune adulte
+
+### Catalogue Gutenberg filtre (methode efficace trouvee)
+Au lieu de scraper page par page (75000+ livres, des heures, risque de
+blocage IP), methode retenue: telecharger le catalogue officiel en un
+seul fichier CSV.
+- URL: https://www.gutenberg.org/cache/epub/feeds/pg_catalog.csv (21 Mo,
+  colonnes: Text#, Type, Issued, Title, Language, Authors, Subjects, LoCC,
+  Bookshelves)
+- Sauvegarde complete: `D:\contes\pg_catalog_full.csv`
+- Filtre francais: `D:\contes\catalogue_francais.csv` (4146 livres, Language=fr)
+- Apercu/stats: `D:\contes\apercu_francais.txt` (top 40 sujets + echantillon titres)
+
+### Top sujets pertinents identifies dans les 4146 livres FR
+- **Children's stories, French**: 20 livres — coeur du skill storyteller enfants
+- **Short stories, French**: 139 — possiblement d'autres contes mal categorises
+- **Adventure stories**: 52 — surtout Jules Verne (De la terre a la lune, Le
+  tour du monde en 80 jours, Cinq semaines en ballon deja repere)
+- **Science fiction**: 38
+- **Historical fiction**: 65
+- **Sea stories**: 21
+- **Love stories**: 35 (pour public plus vieux/ados)
+
+### IDEE Steve (2026-08-16): skill storyteller PARALLELE pour ados/jeunes adultes
+En plus du skill storyteller enfants (Perrault/Grimm/Andersen, voir entrees
+precedentes), utiliser le meme catalogue Gutenberg filtre pour batir un skill
+distinct cible ados/jeunes adultes, base sur Adventure/Science fiction/
+Historical fiction (Jules Verne identifie comme pilier naturel — deja
+plusieurs titres complets disponibles). Progression naturelle envisagee:
+contes classiques (jeunes enfants) -> aventure/Verne (preados-ados) ->
+litterature classique plus dense type Dumas/Stendhal (plus vieux).
+
+**Statut**: idee documentee, catalogue filtre disponible sur disque, RIEN
+telecharge/construit encore pour cette skill ado. Prochaine etape (future
+session): extraire la liste precise des 20 titres "Children's stories,
+French" + explorer Adventure/Science fiction pour une liste ado concrete,
+puis commencer le telechargement cible (meme methode pg{id}.txt que pour
+Andersen, deja validee fonctionnelle).

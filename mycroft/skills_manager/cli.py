@@ -22,9 +22,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 
 def default_skills_dir():
-    from mycroft.data_manager import DataManager
-    dm = DataManager()
-    return dm.get_data_dir() / "skills"
+    return PROJECT_ROOT / "skills"
 
 
 def _manager():

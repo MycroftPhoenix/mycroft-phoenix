@@ -27,7 +27,6 @@ CATALOG_BRANCH = "main"
 CATALOG_DIR = ""
 
 GITHUB_API = "https://api.github.com"
-RAW_URL = f"https://raw.githubusercontent.com/{CATALOG_OWNER}/{CATALOG_REPO}/{CATALOG_BRANCH}"
 
 
 def _cat_path(*parts):
@@ -58,7 +57,8 @@ class SkillsManager:
             return json.loads(resp.read().decode("utf-8"))
 
     def _raw(self, path):
-        url = f"{RAW_URL}/{path.strip('/')}"
+        url = (f"https://raw.githubusercontent.com/{self.catalog_owner}/"
+               f"{self.catalog_repo}/{self.catalog_branch}/{path.strip('/')}")
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=self.timeout) as resp:
             return resp.read().decode("utf-8-sig")

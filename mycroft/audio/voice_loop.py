@@ -427,15 +427,31 @@ class VoiceLoop:
         self.hub = get_hub()
         self.hub.on("phoenix.speak", self._on_speak)
 
-        # Skills installes (catalogue mycroft-phoenix-skills -> data_dir/skills).
+        # Service d'intents `.intent` (padatious-phoenix), branche sur le hub
+        # local (zero reseau). Inerte : s'il n'y a aucun .intent enregistre ou
+        # si padatious est absent, le routage des skills Phoenix est inchange.
+        self.padatious = None
+        try:
+            from mycroft.skills_manager.padatious_service import PadatiousService
+            pad_cfg = self.config.get("padatious", {})
+            self.padatious = PadatiousService(
+                cache_dir=pad_cfg.get("cache_dir"),
+                single_thread=pad_cfg.get("single_thread", True),
+                conf_threshold=pad_cfg.get("conf_threshold"),
+            )
+            self.padatious.bind(self.hub)
+            print(f"[Padatious] Service intents .intent {'actif' if self.padatious.enabled else 'desactive'}")
+        except Exception as e:
+            print(f"[Padatious] Desactive: {e}")
+            self.padatious = None
+
+        # Skills en mode source : dossier skills/ du projet (comme le mode
+        # source de Mycroft original, portable Linux/macOS/Windows).
         # Scan auto : chaque skill suit le contrat Phoenix
         # (create_skill + init + _detect_*_intent + _handle_utterance).
-        # Le depot core est volontairement sans skills (comme mycroft-core).
         self.skills = []
         try:
-            from mycroft.data_manager import DataManager
-            dm = DataManager()
-            skills_dir = dm.get_data_dir() / "skills"
+            skills_dir = PROJECT_ROOT / "skills"
             if skills_dir.is_dir():
                 self.skills += scan_skills(skills_dir, self.hub,
                                            tts=self.tts)
@@ -443,6 +459,13 @@ class VoiceLoop:
         except Exception as e:
             print(f"[Skills] Désactivés: {e}")
             self.skills = []
+
+        # Entrainement padatious une fois les skills charges (no-op si rien).
+        if self.padatious is not None:
+            try:
+                self.padatious.train()
+            except Exception as e:
+                print(f"[Padatious] Entrainement: {e}")
 
         # Interface web (serveur Flask en thread daemon)
         self.web = None
@@ -631,8 +654,23 @@ class VoiceLoop:
         de traitement deja acquis (une seule instance a la fois)."""
         print(f"[Pipeline] Traitement: {text}")
 
-        # Priorite aux skills installes : si un skill reconnait l'utterance,
-        # on ne passe pas par le pipeline (sinon double reponse).
+        # Priorite 1 : intents `.intent` (padatious) -> route vers le skill
+        # porte par le nom d'intent (`<skill_id>:<intent>`). Inert si aucun
+        # intent enregistre ou si le skill n'est pas charge.
+        if self.padatious is not None:
+            pskill, pmatch = self.padatious.match_skill(text.lower(), self.skills)
+            if pskill is not None:
+                print(f"[Skill:{pskill.name}] Intent padatious: {pmatch.name} "
+                      f"(conf {getattr(pmatch, 'conf', 0.0):.2f})")
+                pskill.handle(
+                    InternalMessage("recognizer_loop:utterance",
+                                    {"utterances": [text]})
+                )
+                return
+
+        # Priorite 2 : skills Phoenix (detection par convention). Si un skill
+        # reconnait l'utterance, on ne passe pas par le pipeline (sinon double
+        # reponse).
         if self.skills:
             skill, intent = first_match(self.skills, text.lower())
             if skill is not None:

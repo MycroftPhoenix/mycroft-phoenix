@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Chargement dynamique des skills installes.
 
-Le loader scanne le dossier skills (data_dir/skills) et charge chaque skill
-qui suit le contrat Phoenix :
+Le loader scanne le dossier skills/ du projet (mode source, comme Mycroft
+original) et charge chaque skill qui suit le contrat Phoenix :
     - __init__.py expose `create_skill()` -> instance
     - l'instance expose `init(bus, subscribe=..., tts=...)`
     - et une methode de detection d'intent (convention `_detect_*_intent`)
