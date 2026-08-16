@@ -507,3 +507,41 @@ session): extraire la liste precise des 20 titres "Children's stories,
 French" + explorer Adventure/Science fiction pour une liste ado concrete,
 puis commencer le telechargement cible (meme methode pg{id}.txt que pour
 Andersen, deja validee fonctionnelle).
+
+---
+
+## 2026-08-16 — Progression OpenCode confirmee + verification securite
+
+Question Steve: "il a ecrit la progression de ce qu'il a fait?" — OUI, mais il
+fallait trier `memory.lbdb` par DATE (`ORDER BY e.date DESC`), pas par `e.id`
+(les id ne sont pas chronologiques de facon fiable, valeurs dupliquees/reset
+observees entre differentes requetes de cette session).
+
+### Travail OpenCode du 2026-08-16 (via memory.lbdb, domaine "projects")
+1. **Skills en mode source**: deplacees vers `D:\mycroft-phoenix\skills\`
+   (a cote du core, pas dans data_dir) pour portabilite Linux/macOS/Windows.
+   Modifs: `voice_loop.py` scanne PROJECT_ROOT/skills, `skills_manager/cli.py`
+   + `web.py` default_skills_dir mis a jour. Skills installes: date_time +
+   homeassistant/smarthome.
+2. **Skill smarthome** (renommee depuis "homeassistant"): pilote appareils
+   Home Assistant via API REST (urllib stdlib seul, compatible Windows).
+   Intents FR+EN: turn_on/turn_off/set_brightness/set_temperature/
+   query_state/list_devices. Config via `config.json` local (JAMAIS committe)
+   ou variables env HA_URL/HA_TOKEN. 32/32 tests OK.
+3. **Renommage homeassistant -> smarthome**: raison legale — "Home Assistant"
+   est une marque deposee (Open Home Foundation), le nom generique evite tout
+   risque d'infraction. Code des appels API reste inchange (ce sont les vrais
+   noms de domaines de service HA). Skill volontairement PAS pousse sur GitHub
+   pour l'instant (choix Steve).
+4. Cree `mycroft/skills_manager/__main__.py` (fix: la commande documentee
+   `python -m mycroft.skills_manager list` echouait sans lui) — CE fichier
+   EST sur GitHub (fait partie du coeur, pas du dossier skills/).
+
+### Verification securite effectuee (2026-08-16)
+Confirme: `D:\mycroft-phoenix\skills\smarthome\config.json` (contient
+potentiellement un vrai token HA) n'a JAMAIS ete commite ni pousse sur GitHub.
+`.gitignore` contient la ligne `/skills/` qui exclut tout le dossier skills/
+au complet — protege automatiquement meme via `git add -A`. Choix de Steve de
+garder smarthome local est bien respecte. Seuls les fichiers du COEUR
+(skills_manager/__main__.py, hybrid_skill.py, padatious_service.py) sont sur
+GitHub, pas les skills elles-memes ni leurs secrets.
