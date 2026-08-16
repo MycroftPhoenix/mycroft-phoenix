@@ -414,3 +414,28 @@ entry projects-016), maintenant surs sur GitHub:
    adaptation du script d'import pour le format skill.json) — TOUJOURS EN ATTENTE.
 5. Interroger le domaine "azelia", "exchanges", "learnings" de memory.lbdb
    (seulement "projects" explore cette session) pour contexte additionnel.
+
+---
+
+## 2026-08-15 — Vision corpus + skill storyteller (a documenter, PAS a construire encore)
+
+Steve a clarifie l'usage prevu des corpus linguistiques trouves a la racine D:\:
+
+1. **Corpus francais general** (ftb, orthocorpus, phileduc, etc.): aider le/les
+   modele(s) LLM locaux a faire des phrases plus coherentes et varier le
+   vocabulaire (moins de repetition/formulations robotiques).
+
+2. **Corpus francais medieval** (camfr-treebank-mf-fpc.zip, derom.zip): couleur
+   d'ambiance pour le skill **storyteller** (deja en developpement par OpenCode,
+   voir "modele Azelia" plus haut dans ce log). Idee precise de Steve: le
+   personnage/conteur pourrait parler en francais medieval authentique (pas
+   invente) PUIS traduire/expliquer en francais moderne ce que ca voulait dire
+   — garde l'immersion et l'authenticite sans perdre l'auditeur. Piste
+   interessante non-exploree: double fonction narrative + pedagogique
+   (vocabulaire) si jamais utilise avec un jeune public.
+
+**Statut**: idee/vision claire, RIEN construit. A prioriser apres: (1) intents FR
+de base [en cours, voir plus haut], (2) clarification nom Mira/Phoenix,
+(3) reconciliation code OpenCode/Claude du 15 aout. Lien logique avec le travail
+Azelia deja fait par OpenCode (phoenix_azelia.lbdb, azelia_knowledge.py) — a
+explorer ensemble avant de commencer l'integration medievale.
