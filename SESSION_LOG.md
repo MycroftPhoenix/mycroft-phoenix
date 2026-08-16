@@ -573,3 +573,32 @@ graphe + embeddings semantiques).
 **Prochaine etape logique**: meme methode (filtre catalogue + telechargement
 cible) pour la categorie "Adventure stories"/Jules Verne (skill storyteller
 ado/jeune adulte, idee documentee plus haut).
+
+---
+
+## 2026-08-16 (suite 2) — Telechargement complet "Adventure stories" pour skill ado/JA (56/56)
+
+Meme methode (catalogue filtre + telechargement pg{id}.txt), categorie
+"Adventure stories" (Type=Text uniquement, 1 exclu car Type=Sound: id 20973).
+
+**56/56 reussis, 0 echec.** ~28 Mo de texte dans `D:\contes\brut_ado\`.
+Scripts: `extract_adventure.py`, `download_adventure.py`. Log complet:
+`download_adventure_log.txt`. Liste: `liste_adventure.txt`.
+
+**Contenu notable**: Jules Verne (quasi complet — Tour du monde 80 jours x3
+editions, 20000 lieues x2 editions+complete, Ile mysterieuse, Voyage au
+centre de la Terre, 5 semaines en ballon, etc.), Dumas (Comte de Monte-Cristo
+4 tomes, Vicomte de Bragelonne 4 tomes), Cooper (Dernier des Mohicans),
+Defoe (Robinson Crusoe, 2 traductions differentes), Jack London (Croc-Blanc),
+Kipling (Livre de la Jungle), Leblanc (Arsene Lupin gentleman-cambrioleur),
+Conrad (Typhon, Coeur des tenebres).
+
+**Doublons a noter** (meme oeuvre, editions differentes — a trier/choisir
+lors de la phase classification): Tour du monde en 80 jours (3 versions
+texte: 800, 3456, 46541), Vingt mille lieues sous les mers (5095+5096
+= 2 parties, 5097 = complete, 54873 = autre edition).
+
+**Bilan cumulatif corpus contes/aventure ce soir**: 23 fichiers enfants
+(~4.5 Mo) + 56 fichiers aventure (~28 Mo) = 79 fichiers, ~32 Mo de texte
+brut francais domaine public, prets pour la phase classification/ingestion
+LadybugDB (non commencee).
