@@ -439,3 +439,30 @@ de base [en cours, voir plus haut], (2) clarification nom Mira/Phoenix,
 (3) reconciliation code OpenCode/Claude du 15 aout. Lien logique avec le travail
 Azelia deja fait par OpenCode (phoenix_azelia.lbdb, azelia_knowledge.py) — a
 explorer ensemble avant de commencer l'integration medievale.
+
+---
+
+## 2026-08-15 — Sources contes domaine public (skill storyteller / Azelia)
+
+Discussion avec une autre IA (Ketty, reseau "Allo Education") a confirme: contes
+classiques du domaine public (Perrault, Grimm, Andersen) = libres de droits,
+utilisables sans restriction pour le skill storyteller.
+
+**Sources concretes identifiees (Claude, 2026-08-15)** pour texte integral gratuit
+en francais:
+- **Wikisource** (fr.wikisource.org) — textes originaux Perrault en francais +
+  traductions classiques Grimm/Andersen
+- **Project Gutenberg** (gutenberg.org, section FR) — meme corpus, format
+  texte/epub facile a parser
+- **Contes.biz / conte-moi-une-histoire.com** — versions deja simplifiees pour
+  enfants (site quebecois/francophone), moins de travail de reformulation
+
+**Usage envisage**: texte de base a injecter dans le pipeline Azelia (skill
+storyteller), soit tel quel soit comme matiere premiere que le LLM reformule/
+raconte avec sa propre voix. Lien avec l'idee corpus medieval (voir entree
+precedente du meme jour): un conte classique pourrait etre "colore" avec du
+vocabulaire d'epoque puis explique en francais moderne.
+
+**Statut**: idee/sources documentees, RIEN construit. Steve va partager la
+conversation complete avec Ketty pour plus de pistes — a integrer a cette
+section quand recue.
