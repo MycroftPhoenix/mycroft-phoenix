@@ -739,3 +739,55 @@ personnalises.
 **Etat confirme apres les 2 fixes**: redemarrage propre, plus aucune erreur
 de lock ni de format invalide dans les logs — juste "introuvable" (normal,
 comportement attendu tant que les bases sont pas peuplees).
+
+---
+
+## 2026-08-17 (suite 2) — Branchement story_db + BLOCAGE conflit real_ladybug/kuzu
+
+### Fait
+1. **181 histoires ingerees** dans `story_db.py` (StoryDatabase, vrai kuzu):
+   script `D:\contes\ingest_stories.py`, source `D:\contes\brut\` (23+)
+   et `D:\contes\brut_ado\` (56+, plus celles telechargees en arriere-plan
+   via `download_reste.py` lance plus tot). Nettoyage basique header/footer
+   Gutenberg. **Limite connue**: `story_db.py.add()` tronque le contenu a
+   10000 caracteres — les gros romans (Verne, Dumas) sont donc coupes tres
+   court, pas le texte integral. Fichiers = collections/romans complets,
+   PAS decoupes en contes individuels.
+2. **`_story_context()` ajoutee dans `pipeline.py`**: cherche dans
+   story_db par mots-cles de la demande, injecte des extraits (800 car.
+   max/histoire, top 2) dans le prompt du LLM storytelling, avec instruction
+   explicite de s'en inspirer/adapter plutot que recopier mot pour mot.
+   Branchee dans les deux chemins (Azelia et non-Azelia).
+
+### BLOCAGE TROUVE (2026-08-17, non resolu)
+`StoryDatabase indisponible: generic_type: type "Database" is already
+registered!` — **conflit binaire pybind11 entre `real_ladybug` et le vrai
+`kuzu`**. Les deux librairies enregistrent apparemment un type C++ nomme
+"Database" dans le meme registre global pybind11 — la 2e a etre importee
+dans le process plante. `kuzu_manager.py`/`kuzu_resilience.py` (real_ladybug,
+importes en premier au demarrage) bloquent ensuite `story_db.py` (vrai
+kuzu, importe apres) des qu'il essaie de s'initialiser.
+
+**Consequence actuelle**: `_story_context()` echoue silencieusement (try/
+except gere ca), Phoenix continue de fonctionner mais SANS le contexte
+d'histoires — le storytelling reste dans l'etat d'avant (modele Azelia 135M
+seul, pas d'inspiration story_db).
+
+**Options pour regler ca (a decider avec Steve/OpenCode, PAS fait ce soir,
+quota trop bas pour risquer un fix incomplet)**:
+1. Migrer `story_db.py` vers `real_ladybug` aussi (coherence totale) — MAIS
+   `phoenix_stories.kuzu` existant est en format vrai-kuzu (voir risque deja
+   note dans l'entree migration Kuzu->Ladybug), faudrait le recreer/reimporter.
+2. Lazy-import: importer `kuzu` (vrai) SEULEMENT dans story_db.py et jamais
+   `real_ladybug` dans le meme process — impossible actuellement car
+   kuzu_manager/kuzu_resilience (real_ladybug) sont initialises AVANT dans
+   le pipeline.
+3. Isoler story_db dans un PROCESS SEPARE (sous-process ou microservice
+   local) pour eviter le conflit de registre pybind11 partage.
+
+### Test effectue
+Requete "raconte-moi une histoire de renard" envoyee via `/api/chat` — 
+`[Pipeline] Traitement:` confirme, mais `_story_context` a echoue (voir
+ci-dessus), reponse generee sans contexte d'histoires (qualite pas re-testee
+en detail, le blocage story_db etant la priorite a documenter avant fin de
+session).

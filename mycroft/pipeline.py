@@ -414,6 +414,35 @@ class PhoenixPipeline:
             logger.debug("get_context Azelia: %s", e)
             return ""
 
+    def _story_context(self, query: str, top_k: int = 2) -> str:
+        """Cherche des histoires pertinentes dans story_db (Gutenberg/Wikisource,
+        domaine public) pour inspirer ou nourrir le conteur."""
+        if getattr(self, "story_db", None) is None:
+            try:
+                from mycroft.memory.story_db import StoryDatabase
+                self.story_db = StoryDatabase()
+                if not self.story_db.initialize():
+                    self.story_db = False
+            except Exception as e:
+                logger.warning("StoryDatabase indisponible: %s", e)
+                self.story_db = False
+        if not self.story_db:
+            return ""
+        try:
+            hits = self.story_db.search(query, top_k=top_k)
+            if not hits:
+                return ""
+            parts = []
+            for h in hits:
+                full = self.story_db.get(h["id"])
+                if full and full.get("content"):
+                    excerpt = full["content"][:800]
+                    parts.append(f"[{full['title']}]\n{excerpt}")
+            return "\n\n".join(parts)
+        except Exception as e:
+            logger.debug("story_context: %s", e)
+            return ""
+
     _EMOTION_WORDS = [
         "colere", "colère", "fach", "triste", "peur", "seul", "seule",
         "solitude", "inquiet", "inquiète", "angoisse", "anxieux", "stress",
@@ -981,6 +1010,15 @@ class PhoenixPipeline:
                 else:
                     story_model = self.storytelling_model or self.current_model
                     is_azelia_story = self._is_azelia_model(story_model)
+                    story_ctx = self._story_context(text, top_k=2)
+                    story_note = ""
+                    if story_ctx:
+                        story_note = (
+                            "\n\nVoici des histoires du domaine public qui peuvent "
+                            "t'inspirer (raconte-les à ta façon, adapte-les, ou "
+                            "invente une nouvelle histoire dans le même esprit — "
+                            "ne les recopie pas mot pour mot):\n" + story_ctx
+                        )
                     if is_azelia_story:
                         # Azelia : identité déjà dans le Modelfile (SYSTEM),
                         # ne PAS envoyer de system_prompt (sinon écrasé).
@@ -989,6 +1027,7 @@ class PhoenixPipeline:
                             f"{text}\n\n"
                             "Raconte une histoire courte et chaleureuse, adaptée "
                             "à un enfant, avec des personnages de ton univers."
+                            + story_note
                         )
                     else:
                         sys_prompt = (
@@ -996,7 +1035,7 @@ class PhoenixPipeline:
                             "Raconte une histoire courte, chaleureuse et "
                             "adaptée à un enfant. Réponds en français."
                         )
-                        prompt = f"Utilisateur: {text}"
+                        prompt = f"Utilisateur: {text}" + story_note
                     try:
                         resp = self.query_ollama(
                             prompt=prompt,
