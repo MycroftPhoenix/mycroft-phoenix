@@ -702,3 +702,40 @@ l'entree "Migration Kuzu -> LadybugDB" plus haut. A investiguer.
 Skill `smarthome` maintenant charge automatiquement au demarrage (en plus
 de `date_time`) — confirme que le travail OpenCode du 16 aout (skills en
 mode source, smarthome) est actif et fonctionnel.
+
+---
+
+## 2026-08-17 (suite) — Kuzu degrade explique + 2 causes reglees
+
+Question Steve: "c'est quoi le kuzu degrade?" — explication: quand Phoenix
+peut pas se connecter aux bases graphe (system/personal/research), il
+retombe sur des mots-cles JSON codes en dur au lieu de la vraie recherche
+semantique. Fonctions de base marchent quand meme (heure, meteo,
+salutations), mais pas de memoire entre conversations ni d'intents
+personnalises.
+
+**2 causes distinctes identifiees et reglees ce soir:**
+
+1. **"Could not set lock on file" (personal)** — CAUSE: deux instances de
+   `voice_loop.py` tournaient en meme temps (16100 + 19908, ~900 Mo chacune),
+   la 2e bloquee par le verrou de la 1re. FIX: tuer les deux, relancer UNE
+   seule instance proprement. Regle et confirme — plus d'erreur de lock.
+
+2. **"not a valid Lbug database file" (system)** — CAUSE CONFIRMEE: le
+   fichier `C:\Users\Administrateur\AppData\Roaming\phoenix\phoenix.kuzu`
+   datait du 4 aout (AVANT la migration Ladybug du 14 aout), cree par le
+   vrai package `kuzu`, format incompatible avec `real_ladybug` malgre
+   l'API similaire — exactement le risque de compatibilite deja identifie
+   dans l'entree "Migration Kuzu -> LadybugDB" plus haut dans ce log.
+   FIX (choix Steve): renomme (PAS supprime) vers
+   `phoenix.kuzu.old_realkuzu_20260804` — preserve au cas ou, mais sort
+   du chemin pour que le code puisse creer une nouvelle base Ladybug propre
+   plus tard (peuplement intents = tache deja en attente, voir plus haut).
+   Note technique: le rename a echoue 2 fois avec "fichier utilise par un
+   autre processus" meme apres avoir tue le process Phoenix — un delai de
+   ~5s (`Start-Sleep`) a resolu le probleme (le handle memory-mapped
+   prend un instant a se liberer completement apres la fin du process).
+
+**Etat confirme apres les 2 fixes**: redemarrage propre, plus aucune erreur
+de lock ni de format invalide dans les logs — juste "introuvable" (normal,
+comportement attendu tant que les bases sont pas peuplees).
