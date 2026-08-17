@@ -644,3 +644,61 @@ Page recueil Grimm — meme prudence que la premiere tentative Wikisource
 Perrault: verifier si c'est une page "Oeuvre" (liste d'editions, PAS le
 texte) ou directement le texte. Si liste d'editions, chercher le lien vers
 l'edition francaise reelle avant de scraper.
+
+---
+
+## 2026-08-17 — Bug histoire (Azelia 135M) + bug detection dynamique modeles (corrige)
+
+### Bug histoire garbage (Azelia, 00:27)
+Steve a demande une histoire, recu du charabia anglais incoherent avec des
+labels de debug ("RACIABLE:", "Chouette Memoire:") au lieu d'un vrai conte.
+
+**Cause identifiee**: DEUX systemes de generation d'histoires separes et
+non-connectes existent dans le projet:
+1. `mycroft-phoenix-skills/storyteller/generation.py` — vrai skill bien
+   concu, defaut `qwen2.5:1.5b` (modele de taille raisonnable)
+2. `mycroft/pipeline.py` (lignes ~976-1015) — logique storytelling INLINE
+   DUPLIQUEE, qui elle utilise `llm.storytelling.model` de phoenix_config.json
+   = `smollm2:135m-instruct-fp16-Azelia-instruct-enfants-francais-micro`
+   (135M parametres, TRES petit) SANS AUCUN system_prompt (le code assume
+   que l'identite est dans le Modelfile Ollama — si le dressage est faible
+   sur un si petit modele, ca degenere en hallucinations incoherentes).
+
+C'est la version #2 (pipeline.py inline) qui s'execute reellement — le
+skill storyteller (generation.py) semble ne PAS etre appele du tout par le
+routing actuel. **PAS ENCORE RESOLU** — Steve a choisi de pas contourner
+(changer juste le modele) mais de comprendre le vrai bug d'architecture.
+A discuter avec OpenCode: pourquoi 2 implementations separees, laquelle
+garder, comment les reconcilier.
+
+### Bug detection dynamique modeles — CORRIGE
+Steve avait demande a OpenCode: detection automatique des modeles Ollama
+installes (installer un modele -> redemarrer Phoenix -> apparait dans la
+liste). Ca ne marchait pas.
+
+**Cause trouvee**: `PhoenixPipeline.get_available_models()` dans
+`mycroft/pipeline.py` avait la logique INVERSEE — le docstring disait
+"detecte dynamiquement en premier" mais le code faisait
+`if config_models: return config_models` (donnait toujours priorite a la
+liste figee dans phoenix_config.json, jamais a Ollama en direct).
+
+**Fix applique**: priorite inversee — `_get_ollama_models()` (requete live
+`GET /api/tags` sur Ollama) en premier, config seulement si Ollama
+injoignable/vide. Teste et confirme fonctionnel: `/api/models` retourne
+maintenant les 13 modeles reellement installes sur Ollama (dont
+qwen3.5:0.8b, deepseek-r1:1.5b, qwen2.5-coder:0.5b — pas dans l'ancienne
+liste figee).
+
+### Autre observation (pas traitee, notee seulement)
+Nouveau log au demarrage: `[Worker] Erreur connexion system: Runtime
+exception: Unable to open database. The file is not a valid Lbug database
+file!` — suggere qu'un fichier `phoenix.kuzu`/`.lbdb` existe quelque part
+(cree par le vrai kuzu, pas real_ladybug) et que le nouveau code
+(migration Ladybug faite plus tot) essaie de l'ouvrir sans succes.
+Correspond au risque de compatibilite de FORMAT deja identifie dans
+l'entree "Migration Kuzu -> LadybugDB" plus haut. A investiguer.
+
+### Nouveaute detectee
+Skill `smarthome` maintenant charge automatiquement au demarrage (en plus
+de `date_time`) — confirme que le travail OpenCode du 16 aout (skills en
+mode source, smarthome) est actif et fonctionnel.

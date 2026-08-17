@@ -126,24 +126,20 @@ class PhoenixPipeline:
 
     def get_available_models(self) -> List[Dict]:
         """Retourne la liste des modèles disponibles.
-        
-        Détecte dynamiquement depuis Ollama en premier, puis fallback vers la config.
-        Si des modèles sont configurés, ils priment pour la compatibilité ascendante.
+
+        Détecte dynamiquement depuis Ollama en premier (pour que tout modèle
+        installé via `ollama pull`/`ollama create` apparaisse automatiquement
+        après un redémarrage de Phoenix). Fallback vers la config UNIQUEMENT
+        si Ollama est injoignable ou ne retourne aucun modèle.
         """
-        # Essayer la détection dynamique depuis Ollama
         dynamic_models = self._get_ollama_models()
-        
-        # Fallback vers la configuration (pour compatibilité)
-        config_models = self.config.get("llm", {}).get("available_models", [])
-        
-        # Si la config a des modèles, on les garde (usage courant)
-        # Sinon, on utilise la détection dynamique
-        if config_models:
-            logger.info("Modèles disponibles depuis la configuration (%d modèles)", len(config_models))
-            return config_models
-        else:
+        if dynamic_models:
             logger.info("Modèles détectés dynamiquement depuis Ollama (%d modèles)", len(dynamic_models))
             return dynamic_models
+
+        config_models = self.config.get("llm", {}).get("available_models", [])
+        logger.info("Ollama injoignable/vide, fallback config (%d modèles)", len(config_models))
+        return config_models
     
     def set_model(self, model_id: str) -> bool:
         """Change le modèle actuel."""
