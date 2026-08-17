@@ -77,6 +77,7 @@ class WebServer:
         # Abonnement au hub pour capter les reponses
         if self.hub is not None:
             self.hub.on("phoenix.speak", self._on_speak)
+            self.hub.on("phoenix.think", self._on_think)  # Thinking/reflection mode
             self.hub.on("recognizer_loop:utterance", self._on_utterance)
 
     # ─── Abonnement hub ────────────────────────────────────────────────
@@ -85,6 +86,16 @@ class WebServer:
         text = message.data.get("utterance", "")
         if text:
             self._append_chat("assistant", text)
+
+    def _on_think(self, message):
+        """Affiche le contenu de réflexion interne du modèle (thinking mode).
+        
+        Ce contenu est affiché en italique dans le chat pour montrer
+        le processus de réflexion du modèle, mais n'est PAS lu à voix haute.
+        """
+        text = message.data.get("utterance", "")
+        if text:
+            self._append_chat("thinking", text)
 
     def _on_utterance(self, message):
         utterances = message.data.get("utterances", []) if isinstance(message.data, dict) else []

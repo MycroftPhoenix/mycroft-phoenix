@@ -29,6 +29,30 @@ SUPPORTED_LANGUAGES = {
     "ar": "arabe",
 }
 
+# ── Détection des modèles avec thinking/reflection mode ─────────────
+# Patterns regex pour identifier les modèles capables de "thinking"
+# (réflexion interne avant la réponse finale). Inspiré du système
+# d'OpenCode pour la détection de capacités des modèles.
+THINKING_CAPABLE_PATTERNS = [
+    r"deepseek.*r1",          # DeepSeek-R1 (1.5b, 7b, etc.)
+    r"qwen.*thinking",        # Qwen avec suffixe thinking
+    r".*-reasoning$",         # Modèles avec suffixe -reasoning
+    r".*thought$",            # Modèles avec suffixe -thought
+    r"o1[-\s]",              # OpenAI o1 family
+    r"o3[-\s]",              # OpenAI o3 family
+    r"claude.*thinking",      # Claude avec extended thinking
+    r"glm.*thinking",        # GLM avec thinking mode
+    r"phi.*reasoning",       # Phi avec reasoning
+]
+
+# Patterns pour les tags de sortie thinking (pour parser la réponse)
+THINKING_TAG_PATTERNS = [
+    (r"<think>(.*?)</think>", "re.DOTALL"),  # Format standard DeepSeek/Qwen
+    (r"<reasoning>(.*?)</reasoning>", "re.DOTALL"),  # Format alternatif
+    (r"\[(?:thinking|reasoning)\](.*?)\[/(?:thinking|reasoning)\]", "re.DOTALL"),  # Format [thinking]...[/thinking]
+]
+
+
 def detect_language(text: str) -> str:
     """Détecte la langue du texte. Retourne le code ISO."""
     try:
@@ -54,6 +78,65 @@ def detect_language(text: str) -> str:
         return "fr"
 
 
+def _model_has_thinking(model_name: str) -> bool:
+    """Détecte si un modèle supporte le mode thinking/réflexion.
+    
+    Utilise des patterns regex pour identifier les modèles capables
+    de "thinking" (réflexion interne avant la réponse finale).
+    Inspiré du système de détection de capacités d'OpenCode.
+    
+    Args:
+        model_name: Nom du modèle (ex: "deepseek-r1:1.5b")
+        
+    Returns:
+        True si le modèle supporte le thinking mode
+    """
+    import re
+    model_lower = model_name.lower()
+    for pattern in THINKING_CAPABLE_PATTERNS:
+        if re.search(pattern, model_lower):
+            return True
+    return False
+
+
+def _parse_thinking_response(response_text: str) -> Tuple[str, str]:
+    """Parse la réponse d'un modèle pour séparer thinking vs réponse finale.
+    
+    Extrait le contenu thinking (réflexion interne) de la réponse du modèle
+    et le sépare de la réponse finale destinée à l'utilisateur.
+    
+    Args:
+        response_text: Réponse complète du modèle (avec tags thinking)
+        
+    Returns:
+        Tuple (thinking_content, final_response)
+        - thinking_content: Le contenu de réflexion (peut être vide)
+        - final_response: La réponse finale pour l'utilisateur
+    """
+    import re
+    
+    thinking_content = ""
+    final_response = response_text
+    
+    # Essayer chaque pattern de tags thinking
+    for pattern, flags_str in THINKING_TAG_PATTERNS:
+        flags = re.DOTALL if "DOTALL" in flags_str else 0
+        match = re.search(pattern, response_text, flags)
+        if match:
+            thinking_content = match.group(1).strip()
+            # Supprimer le bloc thinking de la réponse finale
+            final_response = re.sub(pattern, "", response_text, flags=flags).strip()
+            break
+    
+    # Si pas de tags trouvés, vérifier si la réponse commence par du thinking
+    # (certains modèles sortent le thinking sans tags)
+    if not thinking_content and not final_response:
+        # Si la réponse est vide après parsing, retourner l'original
+        final_response = response_text
+    
+    return thinking_content, final_response
+
+
 class PhoenixPipeline:
     """
     Pipeline complet de traitement vocal.
@@ -76,6 +159,9 @@ class PhoenixPipeline:
         self.storytelling_model = story_cfg.get("model", "") or ""
         self.emergency_resources = self._load_emergency_resources()
         self.azelia = None  # AzeliaKnowledge, initialisé paresseusement
+        # Thinking mode : contenu de réflexion interne du dernier appel LLM
+        # (affiché visuellement mais pas lu à voix haute)
+        self.last_thinking = ""
         
     def _load_config(self) -> Dict:
         """Charge la configuration Phoenix."""
@@ -495,12 +581,22 @@ class PhoenixPipeline:
         temperature: float = 0.1,
         timeout: int = 60,
         intent: Optional[str] = None,
+        enable_thinking: bool = True,
     ) -> str:
-        """Interroge Ollama."""
+        """Interroge Ollama.
+        
+        Args:
+            enable_thinking: Active le mode thinking si le modèle le supporte.
+                Le contenu thinking est stocké dans self.last_thinking pour
+                être affiché visuellement sans être lu à voix haute.
+        """
         import requests
         
         model = model or self.current_model
         is_azelia = self._is_azelia_model(model)
+        
+        # Réinitialiser le thinking précédent
+        self.last_thinking = ""
 
         # ── Modèles Azelia ─────────────────────────────────────────────
         # Le Modelfile contient DÉJÀ l'identité complète d'Azelia en SYSTEM.
@@ -508,10 +604,15 @@ class PhoenixPipeline:
         # (et le modèle 0.5B perd son univers + se noie sous 2 prompts).
         # On enrichit donc le message USER avec l'univers (base locale)
         # + les infos internet, de façon compacte.
+        # 
+        # IMPORTANT: Le contexte Azelia (personnages, histoires) n'est injecté
+        # QUE pour l'intent "storytelling" pour éviter que toutes les IA locales
+        # ne portent le nom d'Azelia au lieu de leur propre nom.
         if is_azelia:
             user_content = prompt
-            # Contexte univers seulement si émotion/univers (sinon récitation)
-            if self._azelia_needs_context(prompt):
+            # Contexte univers UNIQUEMENT pour l'intent storytelling
+            # (pas pour les autres intents qui utilisent le même modèle)
+            if intent == "storytelling" and self._azelia_needs_context(prompt):
                 azelia_ctx = self._azelia_context(prompt)
                 if azelia_ctx:
                     # Compact: on garde l'essentiel pour un modèle 0.5B (ctx 4096)
@@ -562,6 +663,14 @@ class PhoenixPipeline:
             "options": options,
         }
         
+        # ── Mode Thinking/Réflexion ───────────────────────────────────
+        # Si le modèle supporte le thinking, activer ce mode pour obtenir
+        # une réflexion interne avant la réponse finale. Le contenu thinking
+        # sera affiché visuellement mais pas lu à voix haute.
+        if enable_thinking and _model_has_thinking(model):
+            payload["think"] = True
+            logger.info("Mode thinking activé pour %s", model)
+        
         # Ajouter LoRA si configuré
         if adapter_path and os.path.exists(adapter_path):
             payload["adapter"] = adapter_path
@@ -575,7 +684,23 @@ class PhoenixPipeline:
             )
             
             if response.status_code == 200:
-                return response.json()["message"]["content"]
+                response_text = response.json()["message"]["content"]
+                
+                # ── Parser le thinking ─────────────────────────────────
+                # Si le modèle a généré du thinking (réflexion interne),
+                # le séparer de la réponse finale.
+                if enable_thinking and _model_has_thinking(model):
+                    thinking, final_response = _parse_thinking_response(response_text)
+                    if thinking:
+                        self.last_thinking = thinking
+                        logger.info("Thinking extrait (%d chars): %s...", len(thinking), thinking[:150])
+                    else:
+                        # Debug: voir la réponse complète du modèle
+                        logger.debug("Pas de thinking trouvé. Réponse complète (%d chars): %s", 
+                                   len(response_text), response_text[:300])
+                    return final_response
+                
+                return response_text
             else:
                 logger.error(f"Ollama erreur {response.status_code}: {response.text}")
                 return "Désolé, je n'ai pas pu générer de réponse."
@@ -1091,11 +1216,16 @@ class PhoenixPipeline:
                     })
                     response = resp_map.get(detected_lang, resp_map.get("fr"))
             
+        # Inclure le thinking content dans la réponse si disponible
+        thinking = self.last_thinking
+        self.last_thinking = ""  # Réinitialiser pour le prochain appel
+        
         return {
             "text": text,
             "entities": entities,
             "intent": intent_result,
             "response": response,
+            "thinking": thinking,  # Contenu de réflexion interne (optionnel)
             "model": self.current_model,
         }
         

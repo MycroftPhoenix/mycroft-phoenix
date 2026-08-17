@@ -689,6 +689,7 @@ class VoiceLoop:
 
         result = self.pipeline.process(text, context=context)
         response = result.get("response", "")
+        thinking = result.get("thinking", "")  # Contenu de réflexion interne
         intent = result.get("intent", {}).get("intent", "unknown")
         confidence = result.get("intent", {}).get("confidence", 0.0)
         severity = result.get("intent", {}).get("severity", 0)
@@ -703,6 +704,10 @@ class VoiceLoop:
                 )
         except Exception:
             pass
+
+        # Émettre le thinking content si disponible (affiché visuellement, pas lu à voix haute)
+        if thinking:
+            self.hub.emit("phoenix.think", {"utterance": thinking})
 
         if response:
             self.hub.emit("phoenix.speak", {"utterance": response})

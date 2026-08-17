@@ -791,3 +791,48 @@ Requete "raconte-moi une histoire de renard" envoyee via `/api/chat` —
 ci-dessus), reponse generee sans contexte d'histoires (qualite pas re-testee
 en detail, le blocage story_db etant la priorite a documenter avant fin de
 session).
+
+---
+
+## 2026-08-17 (suite 3) — Grimm reussi via API MediaWiki (339K car.), Perrault toujours resistant
+
+### Methode API MediaWiki (bien meilleure que scraping HTML brut)
+Wikisource utilise un systeme de transclusion (page principale = juste un
+`<pages index="..." />` pointant vers des scans, pas de texte direct dans
+le HTML statique). Le scraping BeautifulSoup direct (methode utilisee plus
+tot ce soir) echoue systematiquement sur ce type de page. **Solution qui
+marche**: passer par l'API officielle MediaWiki
+(`https://fr.wikisource.org/w/api.php?action=parse&page=TITRE&prop=text`)
+qui retourne le HTML DEJA transclus/rendu server-side — extraction fiable
+ensuite avec BeautifulSoup sur ce HTML-la.
+
+### Grimm — SUCCES (339 244 caracteres)
+Page `Contes choisis des frères Grimm/Texte entier` (sous-page dediee,
+texte integral en un seul morceau) telechargee via l'API avec succes.
+Fichier: `D:\contes\brut\Grimm_Contes_choisis_Texte_entier.txt`.
+Bonus: 40+ contes individuels lies depuis la page recueil si jamais on
+veut les contes un par un plus tard (liste dans l'historique de la
+session, pas re-sauvegardee separement).
+
+### Perrault — TOUJOURS PAS RESOLU
+Contrairement a Grimm, Perrault n'a PAS de sous-page "Texte entier"
+pratique. Structure Wikisource fragmentee: chaque conte a potentiellement
+plusieurs editions (Perrault original, versions Grimm/Deulin du meme conte,
+etc.), les pages nommees simplement ("Cendrillon") sont des
+desambiguisations, les pages "(Perrault)" trouvees contiennent seulement
+de tres courts extraits/liens d'edition (72-147 caracteres), pas le texte
+integral. Plusieurs titres testes retournent carrement "page inexistante"
+(La Barbe bleue (Perrault), Les Fées (Perrault), Riquet à la houppe
+(Perrault)) — les vrais titres de page different de ce qui est intuitif.
+
+**Piste pour la prochaine fois**: utiliser `action=query&list=search` sur
+l'API pour chercher le bon titre exact au lieu de deviner, OU se rabattre
+sur Gutenberg si un ID francais pour Perrault existe sous un autre nom que
+celui deja essaye (ebook 20972 = audio seulement, deja confirme inutile).
+
+### Bilan mise a jour du corpus
+`D:\contes\brut\`: 23 (children's stories) + Grimm Texte entier (339K car.)
++ Andersen Tome I/II (deja fait) = corpus enfants solide, juste Perrault
+manque encore. `D:\contes\brut_ado\`: 56+ (adventure/SF/historical/sea,
+incluant le telechargement en arriere-plan). story_db contient 181 entrees
+ingerees (AVANT l'ajout de Grimm Texte entier — a re-ingerer si besoin).

@@ -32,6 +32,16 @@
         .msg { max-width: 75%; padding: .6rem .9rem; border-radius: 10px; line-height: 1.4; }
         .msg.user { align-self: flex-end; background: #0ea5e9; color: #0f172a; }
         .msg.assistant { align-self: flex-start; background: #334155; color: #e2e8f0; }
+        .msg.thinking { 
+            align-self: flex-start; 
+            background: transparent; 
+            color: #94a3b8; 
+            font-style: italic; 
+            font-size: 0.85rem;
+            border-left: 3px solid #475569;
+            padding-left: 0.8rem;
+            margin: 0.2rem 0;
+        }
         .msg .time { display: block; font-size: .7rem; opacity: .7; margin-top: .3rem; }
         #composer { display: flex; gap: .6rem; padding-top: .8rem; }
         #input {
@@ -317,6 +327,8 @@
         loadStorySettings();
         refresh();
         setInterval(refresh, 3000);
+        // Auto-refresh du chat toutes les 2 secondes pour voir les réponses
+        setInterval(loadHistory, 2000);
     </script>
 </body>
 </html>
