@@ -602,3 +602,45 @@ texte: 800, 3456, 46541), Vingt mille lieues sous les mers (5095+5096
 (~4.5 Mo) + 56 fichiers aventure (~28 Mo) = 79 fichiers, ~32 Mo de texte
 brut francais domaine public, prets pour la phase classification/ingestion
 LadybugDB (non commencee).
+
+---
+
+## 2026-08-16 (suite 3) — Script telechargement categories restantes (LANCE EN ARRIERE-PLAN)
+
+Quota bas (90%+), script lance en detache (`start /min`) pour continuer
+independamment de la session Claude en cours: `D:\contes\download_reste.py`.
+
+Categories ciblees: Science fiction, Historical fiction, Sea stories
+(evite les doublons deja telecharges via check des IDs existants dans
+brut/ et brut_ado/). Sortie: `D:\contes\brut_ado\`. Log en temps reel:
+`D:\contes\download_reste_log.txt`.
+
+**A la prochaine session**: verifier `download_reste_log.txt` pour voir
+si termine (devrait prendre quelques minutes, ~1s pause/requete, categories
+totalisant probablement 100-150 items d'apres les comptes du top sujets
+vus plus tot: Historical fiction 65, Sea stories 21, Science fiction 38).
+Si des erreurs (status non-200), les retenter individuellement.
+
+**Bilan cumulatif fin de soiree**: 79 fichiers confirmes (23 enfants +
+56 aventure) + X fichiers additionnels en cours (SF/historique/mer) dans
+`D:\contes\brut\` et `D:\contes\brut_ado\`. Prochaine etape (future session):
+classification (theme/motif ATU/personnages), decoupage recueils en contes
+individuels, ingestion LadybugDB.
+
+---
+
+## 2026-08-16 (suite 4) — lancer-phoenix.bat casse par OpenCode, repare
+
+`lancer-phoenix.bat` avait ete completement ecrase (probablement OpenCode
+pendant le travail skills/smarthome), syntaxe invalide
+(`"%PYTHON_EXE%" -%MYPROJECT_DIR%/mycroft/pipeline.py` — pas un chemin
+valide) et pointait vers `pipeline.py` au lieu de `voice_loop.py` (le vrai
+point d'entree). Restaure a la version testee/validee plus tot ce soir
+(voir entree "Comment relancer proprement" en haut du log).
+
+**PROCHAINE SOURCE A UTILISER** (donnee par Steve, pas encore scrapee):
+https://fr.wikisource.org/wiki/Contes_choisis_des_fr%C3%A8res_Grimm
+Page recueil Grimm — meme prudence que la premiere tentative Wikisource
+Perrault: verifier si c'est une page "Oeuvre" (liste d'editions, PAS le
+texte) ou directement le texte. Si liste d'editions, chercher le lien vers
+l'edition francaise reelle avant de scraper.
